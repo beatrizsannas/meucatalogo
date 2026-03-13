@@ -103,11 +103,11 @@ function ProductPage() {
 
             <div className="max-w-2xl mx-auto px-4 pt-6 pb-4">
                 {/* Hero Image */}
-                <div className="relative w-full aspect-square max-h-80 rounded-3xl overflow-hidden shadow-card mb-6">
+                <div className="relative w-full aspect-square max-h-[400px] rounded-3xl overflow-hidden shadow-card mb-6 bg-mint-dark/20 flex items-center justify-center">
                     <img
                         src={product.image_url || 'https://via.placeholder.com/600'}
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                     />
                     <div className="absolute top-4 left-4">
                         <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ${status.color}`}>
