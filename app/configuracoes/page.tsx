@@ -74,7 +74,7 @@ export default function ConfiguracoesPage() {
         const { error: profError } = await supabase.from('profiles').update({
             store_name: formData.store_name,
             description: formData.description,
-            whatsapp: formData.whatsapp,
+            whatsapp: formData.whatsapp.replace(/\D/g, ''),
             logo_url: formData.logo_url,
             brand_color: formData.brand_color,
         }).eq('id', user.id);

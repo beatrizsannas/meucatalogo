@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
     LayoutDashboard,
     ShoppingBag,
@@ -10,6 +10,7 @@ import {
     BookOpen,
     Leaf,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 const navItems = [
     { href: '/dashboard', label: 'Visão Geral', icon: LayoutDashboard },
@@ -20,9 +21,16 @@ const navItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        router.push('/login');
+    };
 
     return (
-        <aside className="flex flex-col w-60 min-h-screen bg-forest text-white flex-shrink-0">
+        <aside className="flex flex-col w-60 h-screen sticky top-0 bg-forest text-white flex-shrink-0">
             {/* Brand */}
             <div className="flex items-center gap-3 px-6 py-7 border-b border-white/10">
                 <div className="w-9 h-9 rounded-xl bg-lime flex items-center justify-center flex-shrink-0">
@@ -56,13 +64,13 @@ export default function Sidebar() {
 
             {/* Footer */}
             <div className="px-4 py-6 border-t border-white/10">
-                <Link
-                    href="/login"
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200"
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200"
                 >
                     <LogOut size={18} />
                     Sair
-                </Link>
+                </button>
             </div>
         </aside>
     );
