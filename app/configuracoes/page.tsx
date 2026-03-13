@@ -105,7 +105,12 @@ export default function ConfiguracoesPage() {
         const ext = file.name.split('.').pop();
         const path = `${user.id}/logo-${Date.now()}.${ext}`;
         const { error: upErr } = await supabase.storage.from('product-images').upload(path, file);
-        if (upErr) { setErrorMsg('Erro ao enviar logo. Tente novamente.'); setIsUploadingLogo(false); return; }
+        if (upErr) {
+            console.error("Upload error:", upErr);
+            setErrorMsg(`Erro ao enviar logo: ${upErr.message}`);
+            setIsUploadingLogo(false);
+            return;
+        }
         const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);
         const publicUrl = urlData.publicUrl;
         // Auto-save the logo URL directly to the profile
