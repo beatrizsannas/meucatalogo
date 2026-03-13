@@ -46,19 +46,47 @@ export default function CatalogPublicPage() {
     }, [companyId]);
 
     async function loadStore() {
-        const supabase = createClient();
-        const { data: prof } = await supabase.from('profiles').select('*').eq('slug', companyId).maybeSingle();
-        if (!prof) { setLoading(false); return; }
-        setProfile(prof);
+        try {
+            const supabase = createClient();
+            console.log('Fetching profile for slug:', companyId);
 
-        const { data: prods } = await supabase
-            .from('products')
-            .select('*')
-            .eq('profile_id', prof.id)
-            .neq('status', 'inativo')
-            .order('created_at', { ascending: false });
-        setProducts(prods || []);
-        setLoading(false);
+            const { data: prof, error: profError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('slug', companyId)
+                .maybeSingle();
+
+            if (profError) {
+                console.error('Error fetching profile:', profError);
+                setLoading(false);
+                return;
+            }
+
+            if (!prof) {
+                console.warn('No profile found for slug:', companyId);
+                setLoading(false);
+                return;
+            }
+
+            setProfile(prof);
+
+            const { data: prods, error: prodsError } = await supabase
+                .from('products')
+                .select('*')
+                .eq('profile_id', prof.id)
+                .neq('status', 'inativo')
+                .order('created_at', { ascending: false });
+
+            if (prodsError) {
+                console.error('Error fetching products:', prodsError);
+            }
+
+            setProducts(prods || []);
+        } catch (err) {
+            console.error('Unexpected error in loadStore:', err);
+        } finally {
+            setLoading(false);
+        }
     }
 
     const categories = ['Todos', ...Array.from(new Set(products.map(p => p.category)))];
@@ -85,9 +113,11 @@ export default function CatalogPublicPage() {
 
     if (!profile) {
         return (
-            <div className="min-h-screen bg-mint/30 flex items-center justify-center flex-col gap-2">
+            <div className="min-h-screen bg-mint/30 flex items-center justify-center flex-col gap-2 p-4 text-center">
                 <Leaf size={40} className="text-forest/30" />
                 <p className="text-forest/60 font-medium">Loja não encontrada.</p>
+                <p className="text-forest/30 text-xs">O link "{companyId}" não existe ou os dados estão protegidos.</p>
+                <Link href="/" className="mt-4 text-forest/60 underline text-sm font-medium hover:text-forest transition-colors">Voltar ao início</Link>
             </div>
         );
     }
