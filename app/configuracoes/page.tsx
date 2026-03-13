@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from '@/app/components/Sidebar';
 import { Camera, Save, Building2, Phone, AlignLeft, LogOut, CheckCircle2, Palette } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/utils/image';
 
 export default function ConfiguracoesPage() {
     const router = useRouter();
@@ -102,9 +103,11 @@ export default function ConfiguracoesPage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setIsUploadingLogo(false); return; }
-        const ext = file.name.split('.').pop();
+
+        const compressedFile = await compressImage(file, 500);
+        const ext = compressedFile.name.split('.').pop();
         const path = `${user.id}/logo-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('product-images').upload(path, file);
+        const { error: upErr } = await supabase.storage.from('product-images').upload(path, compressedFile);
         if (upErr) {
             console.error("Upload error:", upErr);
             setErrorMsg(`Erro ao enviar logo: ${upErr.message}`);

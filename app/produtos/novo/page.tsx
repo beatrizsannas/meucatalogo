@@ -34,9 +34,10 @@ export default function NovoProdutoPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setUploadError('Não autenticado.'); setIsUploading(false); return; }
 
-        const ext = file.name.split('.').pop();
+        const compressedFile = await compressImage(file, 1000);
+        const ext = compressedFile.name.split('.').pop();
         const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('product-images').upload(path, file, { upsert: true });
+        const { error: upErr } = await supabase.storage.from('product-images').upload(path, compressedFile);
         if (upErr) { setUploadError('Erro ao enviar imagem. Tente novamente.'); setIsUploading(false); return; }
 
         const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(path);

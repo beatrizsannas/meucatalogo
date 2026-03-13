@@ -31,9 +31,15 @@ export default function ProdutosPage() {
     const [status, setStatus] = useState('Todos');
     const [page, setPage] = useState(1);
     const [showToast, setShowToast] = useState('');
-    const [profile, setProfile] = useState<{ slug: string } | null>(null);
+    const [profile, setProfile] = useState<{ id: string, slug: string } | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Share Modal States
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [slugInput, setSlugInput] = useState('');
+    const [slugError, setSlugError] = useState('');
+    const [isSavingSlug, setIsSavingSlug] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -43,19 +49,66 @@ export default function ProdutosPage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
-        const { data: prof } = await supabase.from('profiles').select('slug').eq('id', user.id).single();
+        const { data: prof } = await supabase.from('profiles').select('id, slug').eq('id', user.id).single();
         setProfile(prof);
+        if (prof) setSlugInput(prof.slug);
+
         const { data } = await supabase.from('products').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
         setProducts(data || []);
         setLoading(false);
     }
 
-    const handleShareCatalog = async () => {
+    const handleCopyLink = async () => {
         if (!profile) return;
         const url = `${window.location.origin}/c/${profile.slug}`;
         await navigator.clipboard.writeText(url);
-        setShowToast('Link do catálogo copiado!');
+        setShowToast('Link copiado!');
         setTimeout(() => setShowToast(''), 3000);
+    };
+
+    const handleSaveSlug = async () => {
+        if (!profile) return;
+        setSlugError('');
+
+        const newSlug = slugInput.trim().toLowerCase();
+
+        // Basic validation
+        if (!newSlug) {
+            setSlugError('O link não pode ficar vazio.');
+            return;
+        }
+        if (!/^[a-z0-9-]+$/.test(newSlug)) {
+            setSlugError('Use apenas letras minúsculas, números e hífens.');
+            return;
+        }
+
+        if (newSlug === profile.slug) {
+            setShowShareModal(false);
+            return; // No change
+        }
+
+        setIsSavingSlug(true);
+        const supabase = createClient();
+
+        // Check uniqueness
+        const { data: existing } = await supabase.from('profiles').select('id').eq('slug', newSlug).maybeSingle();
+        if (existing && existing.id !== profile.id) {
+            setSlugError('Este link já está em uso por outra loja.');
+            setIsSavingSlug(false);
+            return;
+        }
+
+        // Save
+        const { error } = await supabase.from('profiles').update({ slug: newSlug }).eq('id', profile.id);
+
+        setIsSavingSlug(false);
+        if (error) {
+            setSlugError('Erro ao salvar. Tente novamente.');
+        } else {
+            setProfile({ ...profile, slug: newSlug });
+            setShowToast('Link atualizado!');
+            setTimeout(() => setShowToast(''), 3000);
+        }
     };
 
     const handleDelete = async () => {
@@ -99,7 +152,7 @@ export default function ProdutosPage() {
                         <p className="text-forest/50 text-sm mt-0.5">Gerencie seu catálogo e estoque em um só lugar.</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button onClick={handleShareCatalog} className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-forest/20 bg-white text-forest text-sm font-semibold hover:bg-mint transition-colors shadow-soft">
+                        <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-forest/20 bg-white text-forest text-sm font-semibold hover:bg-mint transition-colors shadow-soft">
                             <Share2 size={15} />
                             Compartilhar Catálogo
                         </button>
@@ -223,6 +276,58 @@ export default function ProdutosPage() {
                             >
                                 {isDeleting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Trash2 size={16} />}
                                 {isDeleting ? 'Excluindo...' : 'Sim, excluir'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Share Catalog Modal */}
+            {showShareModal && profile && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 cursor-default" style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}>
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
+                        <button onClick={() => setShowShareModal(false)} className="absolute top-6 right-6 text-forest/40 hover:text-forest transition-colors">
+                            X
+                        </button>
+
+                        <div className="w-14 h-14 rounded-full bg-mint flex items-center justify-center mx-auto mb-5 text-forest">
+                            <Share2 size={24} />
+                        </div>
+
+                        <h2 className="text-xl font-bold text-forest text-center mb-2">Compartilhar Catálogo</h2>
+                        <p className="text-forest/60 text-sm text-center mb-6">Personalize o link público do seu catálogo.</p>
+
+                        <div className="mb-6">
+                            <label className="block text-xs font-bold text-forest mb-2">Seu Link Público</label>
+                            <div className="flex items-center bg-mint/30 border border-mint-dark rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-lime transition-shadow">
+                                <span className="pl-4 pr-1 py-3 text-sm text-forest/40 select-none bg-mint-dark/10 border-r border-mint-dark">
+                                    meucatalogo.com/c/
+                                </span>
+                                <input
+                                    type="text"
+                                    value={slugInput}
+                                    onChange={(e) => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                                    className="flex-1 bg-transparent px-3 py-3 text-sm text-forest font-semibold focus:outline-none"
+                                    placeholder="sua-loja"
+                                />
+                            </div>
+                            {slugError && <p className="text-red-500 text-xs font-medium mt-2">{slugError}</p>}
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={handleSaveSlug}
+                                disabled={isSavingSlug || slugInput === profile.slug}
+                                className="w-full py-3.5 rounded-full bg-forest text-white font-bold text-sm hover:bg-forest/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-card"
+                            >
+                                {isSavingSlug ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
+                                {isSavingSlug ? 'Salvando...' : 'Salvar Alterações'}
+                            </button>
+                            <button
+                                onClick={handleCopyLink}
+                                className="w-full py-3.5 rounded-full border border-mint-dark text-forest font-semibold text-sm hover:bg-mint transition-colors"
+                            >
+                                Copiar Link
                             </button>
                         </div>
                     </div>
