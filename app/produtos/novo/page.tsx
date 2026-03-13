@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Sidebar from '@/app/components/Sidebar';
 import { ChevronLeft, Save, Image as ImageIcon, Tag, AlignLeft, Upload, Link2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { compressImage } from '@/lib/utils/image';
 
 const statuses = ['ativo', 'inativo', 'em-estoque', 'baixo-estoque', 'esgotado'];
 const statusLabels: Record<string, string> = {
