@@ -126,35 +126,84 @@ export default function CatalogPublicPage() {
         <CartProvider>
             <div className="min-h-screen bg-mint/30 pb-12">
                 {/* Header */}
-                <header className="bg-white border-b border-mint-dark pt-12 pb-8 px-4 rounded-b-[2.5rem] shadow-sm relative z-10">
-                    <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-                        <div className="w-24 h-24 rounded-full bg-mint-dark overflow-hidden mb-4 shadow-md ring-4 ring-white border border-mint">
-                            <img src={profile.logo_url || FALLBACK_LOGO} alt={profile.store_name} className="w-full h-full object-cover" />
-                        </div>
-                        <h1 className="text-3xl font-extrabold text-forest mb-2">{profile.store_name}</h1>
-                        {profile.description && (
-                            <p className="text-forest/60 max-w-lg mb-6 text-sm leading-relaxed">
-                                {profile.description}
-                            </p>
-                        )}
+                <header className="relative z-10 mx-3 mt-3 mb-0">
+                    {/* Card container com bordas bem definidas */}
+                    <div className="bg-white rounded-3xl border border-mint-dark shadow-[0_4px_24px_0_rgba(15,41,38,0.08)] overflow-hidden">
+                        {/* Faixa decorativa no topo com a cor brand */}
+                        <div
+                            className="h-1.5 w-full"
+                            style={{ backgroundColor: profile.brand_color || '#a8e63d' }}
+                        />
 
-                        <div className="flex items-center justify-center gap-3 w-full max-w-sm px-4 sm:px-0">
-                            <a href={waLink} target="_blank" rel="noopener noreferrer"
-                                style={{ backgroundColor: profile.brand_color || '#a8e63d' }}
-                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-forest font-bold hover:opacity-90 transition-all shadow-sm active:scale-95 text-sm">
-                                <MessageCircle size={18} />
-                                Fale Conosco
-                            </a>
-                            <Link href={`/c/${companyId}/pedidos`}
-                                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full bg-mint/50 border border-mint-dark text-forest font-bold hover:bg-mint transition-colors shadow-sm active:scale-95 text-sm">
-                                <PackageSearch size={18} />
-                                Meus Pedidos
-                            </Link>
+                        <div className="pt-8 pb-7 px-6 flex flex-col items-center text-center">
+                            {/* Logo com dupla borda elegante */}
+                            <div className="relative mb-5">
+                                <div
+                                    className="w-[88px] h-[88px] rounded-full p-[3px] shadow-md"
+                                    style={{ backgroundColor: profile.brand_color || '#a8e63d' }}
+                                >
+                                    <div className="w-full h-full rounded-full overflow-hidden bg-white ring-2 ring-white">
+                                        <img
+                                            src={profile.logo_url || FALLBACK_LOGO}
+                                            alt={profile.store_name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                </div>
+                                {/* Brilho sutil abaixo do logo */}
+                                <div
+                                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 h-3 rounded-full blur-md opacity-40"
+                                    style={{ backgroundColor: profile.brand_color || '#a8e63d' }}
+                                />
+                            </div>
+
+                            {/* Nome da loja */}
+                            <h1 className="text-2xl font-extrabold text-forest tracking-tight leading-tight mb-1">
+                                {profile.store_name}
+                            </h1>
+
+                            {/* Separador decorativo */}
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="h-px w-8 bg-mint-dark" />
+                                <div
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: profile.brand_color || '#a8e63d' }}
+                                />
+                                <div className="h-px w-8 bg-mint-dark" />
+                            </div>
+
+                            {/* Descrição com quebra de linha preservada */}
+                            {profile.description && (
+                                <p className="text-forest/60 max-w-sm mb-6 text-[13px] leading-relaxed whitespace-pre-line text-center">
+                                    {profile.description}
+                                </p>
+                            )}
+
+                            {/* Botões de ação */}
+                            <div className="flex items-center justify-center gap-3 w-full max-w-xs">
+                                <a
+                                    href={waLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ backgroundColor: profile.brand_color || '#a8e63d' }}
+                                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl text-forest font-bold hover:opacity-90 transition-all shadow-sm active:scale-95 text-sm border border-black/5"
+                                >
+                                    <MessageCircle size={16} />
+                                    Fale Conosco
+                                </a>
+                                <Link
+                                    href={`/c/${companyId}/pedidos`}
+                                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-mint/60 border border-mint-dark text-forest font-bold hover:bg-mint transition-colors shadow-sm active:scale-95 text-sm"
+                                >
+                                    <PackageSearch size={16} />
+                                    Meus Pedidos
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </header>
 
-                <main className="max-w-4xl mx-auto px-4 pt-8">
+                <main className="max-w-4xl mx-auto px-3 pt-4">
                     {/* Search and Filters */}
                     <div className="bg-white rounded-2xl p-4 shadow-card border border-mint-dark mb-8 flex flex-col sm:flex-row gap-3">
                         <div className="relative flex-1">
