@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Search, ChevronDown, Leaf, MessageCircle, Boxes, Tag } from 'lucide-react';
+import { Search, ChevronDown, Leaf, MessageCircle, Boxes, Tag, PackageSearch } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { WholesaleCartProvider, useWholesaleCart } from '@/app/context/WholesaleCartContext';
+import WholesaleCartDrawer from '@/app/components/WholesaleCartDrawer';
 
 type Product = {
     id: string;
@@ -42,6 +44,7 @@ export default function WholesaleCatalogPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState('Todos');
+    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
     useEffect(() => {
         if (companyId) loadStore();
@@ -75,7 +78,7 @@ export default function WholesaleCatalogPage() {
         }
     }
 
-    const categories = ['Todos', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
+    const categories = ['Todos', ...Array.from(new Set(products.map(p => p.category).filter(Boolean))).sort((a,b) => a.localeCompare(b))];
 
     const filtered = products.filter(p => {
         const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
@@ -108,8 +111,9 @@ export default function WholesaleCatalogPage() {
     }
 
     return (
-        <div className="min-h-screen bg-amber-50/40 pb-12">
-            {/* Header */}
+        <WholesaleCartProvider>
+            <div className="min-h-screen bg-amber-50/40 pb-12">
+                {/* Header */}
             <header className="relative z-10 mx-3 mt-3 mb-0">
                 <div className="bg-white rounded-3xl border border-amber-200 shadow-[0_4px_24px_0_rgba(120,80,0,0.07)] overflow-hidden">
                     {/* Faixa amber no topo */}
@@ -151,16 +155,25 @@ export default function WholesaleCatalogPage() {
                             </p>
                         )}
 
-                        {/* CTA WhatsApp */}
-                        <a
-                            href={waLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 py-2.5 px-6 rounded-2xl bg-amber-400 text-amber-900 font-bold hover:bg-amber-500 transition-all shadow-sm active:scale-95 text-sm border border-amber-300"
-                        >
-                            <MessageCircle size={16} />
-                            Fazer Pedido Atacado
-                        </a>
+                        {/* Botões de ação */}
+                        <div className="flex items-center justify-center gap-3 w-full max-w-xs mt-2">
+                            <a
+                                href={waLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-amber-400 text-amber-900 font-bold hover:bg-amber-500 transition-all shadow-sm active:scale-95 text-sm border border-amber-500"
+                            >
+                                <MessageCircle size={16} />
+                                Fale Conosco
+                            </a>
+                            <Link
+                                href={`/a/${companyId}/pedidos`}
+                                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-amber-100 border border-amber-300 text-amber-900 font-bold hover:bg-amber-200 transition-colors shadow-sm active:scale-95 text-sm"
+                            >
+                                <PackageSearch size={16} />
+                                Meus Pedidos
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -179,14 +192,30 @@ export default function WholesaleCatalogPage() {
                         />
                     </div>
                     <div className="relative min-w-[160px]">
-                        <select
-                            value={category}
-                            onChange={e => setCategory(e.target.value)}
-                            className="w-full appearance-none pl-4 pr-10 py-3 rounded-xl bg-amber-50/60 border border-amber-200 text-forest text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer transition-all"
+                        <button
+                            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                            className="w-full flex items-center justify-between pl-4 pr-10 py-3 rounded-xl bg-amber-50/60 border border-amber-200 text-forest text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-300 cursor-pointer transition-all text-left"
                         >
-                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none" size={16} />
+                            <span className="truncate pr-2">{category}</span>
+                            <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 text-amber-500 pointer-events-none transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} size={16} />
+                        </button>
+
+                        {isCategoryOpen && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsCategoryOpen(false)} />
+                                <div className="absolute top-full right-0 mt-2 w-full min-w-[200px] bg-white rounded-2xl border border-amber-200 shadow-[0_4px_20px_0_rgba(120,80,0,0.1)] z-50 overflow-hidden py-2 max-h-60 overflow-y-auto">
+                                    {categories.map(c => (
+                                        <button
+                                            key={c}
+                                            onClick={() => { setCategory(c); setIsCategoryOpen(false); }}
+                                            className={`w-full text-left px-5 py-2.5 text-sm transition-colors ${category === c ? 'bg-amber-100/50 text-amber-900 font-bold' : 'text-forest/70 hover:bg-amber-50 hover:text-amber-900 font-medium'}`}
+                                        >
+                                            {c}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -208,24 +237,29 @@ export default function WholesaleCatalogPage() {
                         </div>
                     ) : (
                         filtered.map(product => (
-                            <WholesaleProductCard key={product.id} product={product} formatPrice={formatPrice} waLink={waLink} />
+                            <WholesaleProductCard key={product.id} product={product} formatPrice={formatPrice} companyId={companyId} />
                         ))
                     )}
                 </div>
             </main>
+
+            <WholesaleCartDrawer profileId={profile.id} whatsapp={profile.whatsapp} />
         </div>
+        </WholesaleCartProvider>
     );
 }
 
-function WholesaleProductCard({ product, formatPrice, waLink }: {
+function WholesaleProductCard({ product, formatPrice, companyId }: {
     product: Product;
     formatPrice: (v: number) => string;
-    waLink: string;
+    companyId: string;
 }) {
+    const { addToCart } = useWholesaleCart();
+    const productUrl = `/a/${companyId}/p/${product.id}`;
     return (
         <div className="group flex flex-col bg-white rounded-3xl overflow-hidden shadow-sm border border-amber-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
             {/* Imagem */}
-            <Link href={`/p/${product.id}`} className="block relative aspect-square overflow-hidden bg-amber-50">
+            <Link href={productUrl} className="block relative aspect-square overflow-hidden bg-amber-50">
                 <img
                     src={product.image_url || 'https://via.placeholder.com/300'}
                     alt={product.name}
@@ -246,7 +280,7 @@ function WholesaleProductCard({ product, formatPrice, waLink }: {
 
             {/* Conteúdo */}
             <div className="p-4 flex flex-col flex-1">
-                <Link href={`/p/${product.id}`} className="hover:underline decoration-forest/30">
+                <Link href={productUrl} className="hover:underline decoration-forest/30">
                     <h3 className="font-semibold text-forest text-sm leading-tight mb-0.5 line-clamp-2">{product.name}</h3>
                 </Link>
                 {product.category && <p className="text-forest/40 text-xs mb-3">{product.category}</p>}
@@ -286,15 +320,15 @@ function WholesaleProductCard({ product, formatPrice, waLink }: {
 
                     {/* CTA */}
                     {product.status !== 'esgotado' && (
-                        <a
-                            href={waLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full mt-1 py-2 rounded-xl bg-amber-400 text-amber-900 font-bold text-xs hover:bg-amber-500 transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                addToCart(product, product.wholesale_min_qty || 1, false);
+                            }}
+                            className="w-full mt-1 py-2 rounded-xl bg-amber-400 text-amber-900 font-bold text-sm hover:bg-amber-500 transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-amber-500"
                         >
-                            <MessageCircle size={13} />
-                            Pedir
-                        </a>
+                            + Adicionar
+                        </button>
                     )}
                 </div>
             </div>

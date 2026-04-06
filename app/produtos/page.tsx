@@ -20,7 +20,10 @@ type Product = {
     category: string;
     status: string;
     image_url: string;
+    description: string;
     tags: string[];
+    wholesale_price: number | null;
+    wholesale_min_qty: number | null;
 };
 
 export default function ProdutosPage() {
@@ -157,7 +160,7 @@ export default function ProdutosPage() {
                     <div className="flex items-center gap-3">
                         <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-forest/20 bg-white text-forest text-sm font-semibold hover:bg-mint transition-colors shadow-soft">
                             <Share2 size={15} />
-                            Compartilhar Catálogo
+                            Catálogo Varejo
                         </button>
                         <button onClick={() => setShowWholesaleModal(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-amber-300 bg-amber-50 text-amber-800 text-sm font-semibold hover:bg-amber-100 transition-colors shadow-soft">
                             <Boxes size={15} />
@@ -206,6 +209,7 @@ export default function ProdutosPage() {
                                     <th className="text-left text-xs font-semibold text-forest/40 uppercase tracking-wider px-6 py-4">Imagem</th>
                                     <th className="text-left text-xs font-semibold text-forest/40 uppercase tracking-wider px-4 py-4">Nome do Produto</th>
                                     <th className="text-left text-xs font-semibold text-forest/40 uppercase tracking-wider px-4 py-4">Preço</th>
+                                    <th className="text-left text-xs font-semibold text-forest/40 uppercase tracking-wider px-4 py-4">Preço Atacado</th>
                                     <th className="text-left text-xs font-semibold text-forest/40 uppercase tracking-wider px-4 py-4">Categoria</th>
                                     <th className="text-left text-xs font-semibold text-forest/40 uppercase tracking-wider px-4 py-4">Status</th>
                                     <th className="text-right text-xs font-semibold text-forest/40 uppercase tracking-wider px-6 py-4">Ações</th>
@@ -227,6 +231,15 @@ export default function ProdutosPage() {
                                                 <p className="text-xs text-forest/40 font-mono mt-0.5">#{product.id.substring(0, 8).toUpperCase()}</p>
                                             </td>
                                             <td className="px-4 py-4"><p className="text-forest font-medium text-sm">{formatPrice(product.price)}</p></td>
+                                            <td className="px-4 py-4">
+                                                {product.wholesale_price ? (
+                                                    <p className="text-amber-700 font-bold text-sm bg-amber-50 inline-block px-2 py-0.5 rounded-md border border-amber-200">
+                                                        {formatPrice(product.wholesale_price)}
+                                                    </p>
+                                                ) : (
+                                                    <p className="text-forest/30 text-sm">-</p>
+                                                )}
+                                            </td>
                                             <td className="px-4 py-4"><p className="text-forest/60 text-sm">{product.category}</p></td>
                                             <td className="px-4 py-4"><Badge status={product.status as any} /></td>
                                             <td className="px-6 py-4">

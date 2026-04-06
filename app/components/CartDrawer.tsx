@@ -106,6 +106,7 @@ export default function CartDrawer({ profileId, whatsapp, brandColor }: Props) {
                 items: items.map(item => ({
                     productId: item.product.id,
                     productName: item.product.name,
+                    image_url: item.product.image_url,
                     quantity: item.quantity,
                     price: item.product.price,
                 })),

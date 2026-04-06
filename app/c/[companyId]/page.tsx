@@ -40,6 +40,7 @@ export default function CatalogPublicPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState('Todos');
+    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
     useEffect(() => {
         if (companyId) loadStore();
@@ -89,7 +90,7 @@ export default function CatalogPublicPage() {
         }
     }
 
-    const categories = ['Todos', ...Array.from(new Set(products.map(p => p.category)))];
+    const categories = ['Todos', ...Array.from(new Set(products.map((p) => p.category).filter(Boolean))).sort((a,b) => a.localeCompare(b))];
 
     const filtered = products.filter((p) => {
         const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
@@ -212,11 +213,30 @@ export default function CatalogPublicPage() {
                                 className="w-full pl-11 pr-4 py-3 rounded-xl bg-mint/50 border border-mint-dark/50 text-forest placeholder:text-forest/40 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all" />
                         </div>
                         <div className="relative min-w-[160px]">
-                            <select value={category} onChange={(e) => setCategory(e.target.value)}
-                                className="w-full appearance-none pl-4 pr-10 py-3 rounded-xl bg-mint/50 border border-mint-dark/50 text-forest text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-lime cursor-pointer transition-all">
-                                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-forest/50 pointer-events-none" size={16} />
+                            <button
+                                onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                                className="w-full flex items-center justify-between pl-4 pr-10 py-3 rounded-xl bg-mint/50 border border-mint-dark/50 text-forest text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-lime cursor-pointer transition-all text-left"
+                            >
+                                <span className="truncate pr-2">{category}</span>
+                                <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 text-forest/50 pointer-events-none transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} size={16} />
+                            </button>
+
+                            {isCategoryOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setIsCategoryOpen(false)} />
+                                    <div className="absolute top-full right-0 mt-2 w-full min-w-[200px] bg-white rounded-2xl border border-mint-dark shadow-[0_4px_20px_0_rgba(0,0,0,0.08)] z-50 overflow-hidden py-2 max-h-60 overflow-y-auto">
+                                        {categories.map(c => (
+                                            <button
+                                                key={c}
+                                                onClick={() => { setCategory(c); setIsCategoryOpen(false); }}
+                                                className={`w-full text-left px-5 py-2.5 text-sm transition-colors ${category === c ? 'bg-mint/30 text-forest font-bold' : 'text-forest/70 hover:bg-mint/20 hover:text-forest font-medium'}`}
+                                            >
+                                                {c}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 

@@ -5,9 +5,14 @@ export interface Product {
     category: string;
     status: 'ativo' | 'inativo' | 'em-estoque' | 'baixo-estoque' | 'esgotado';
     image: string;
+    image_url?: string;
     description: string;
     whatsapp: string;
     tags: string[];
+    wholesale_price?: number;
+    wholesale_min_qty?: number;
+    wholesale_label?: boolean;
+    wholesale_label_price?: number;
 }
 
 export const products: Product[] = [

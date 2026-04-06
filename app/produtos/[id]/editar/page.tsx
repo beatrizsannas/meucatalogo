@@ -14,6 +14,20 @@ const statusLabels: Record<string, string> = {
     'baixo-estoque': 'Baixo Estoque', 'esgotado': 'Esgotado',
 };
 
+const parseCurrency = (val: string) => {
+    if (!val) return null;
+    const numeric = val.replace(/\D/g, '');
+    if (!numeric) return null;
+    return parseInt(numeric, 10) / 100;
+};
+
+const maskCurrency = (val: string) => {
+    const numeric = val.replace(/\D/g, '');
+    if (!numeric) return '';
+    const asNumber = parseInt(numeric, 10) / 100;
+    return asNumber.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+};
+
 export default function EditarProdutoPage() {
     const params = useParams();
     const router = useRouter();
@@ -47,10 +61,10 @@ export default function EditarProdutoPage() {
             image: data.image_url || '',
             description: data.description || '',
             tags: Array.isArray(data.tags) ? data.tags.join(', ') : '',
-            wholesale_price: data.wholesale_price?.toString() || '',
+            wholesale_price: data.wholesale_price ? maskCurrency(data.wholesale_price.toFixed(2)) : '',
             wholesale_min_qty: data.wholesale_min_qty?.toString() || '',
             wholesale_label: data.wholesale_label || false,
-            wholesale_label_price: data.wholesale_label_price?.toString() || '',
+            wholesale_label_price: data.wholesale_label_price ? maskCurrency(data.wholesale_label_price.toFixed(2)) : '',
         });
         setLoading(false);
     }
@@ -86,10 +100,10 @@ export default function EditarProdutoPage() {
             image_url: formData.image,
             description: formData.description,
             tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
-            wholesale_price: formData.wholesale_price ? parseFloat(formData.wholesale_price) : null,
+            wholesale_price: parseCurrency(formData.wholesale_price),
             wholesale_min_qty: formData.wholesale_min_qty ? parseInt(formData.wholesale_min_qty) : null,
             wholesale_label: formData.wholesale_label,
-            wholesale_label_price: formData.wholesale_label_price ? parseFloat(formData.wholesale_label_price) : null,
+            wholesale_label_price: parseCurrency(formData.wholesale_label_price),
         }).eq('id', id);
         if (err) { setError(err.message); setIsSaving(false); return; }
         router.push('/produtos');
@@ -231,16 +245,15 @@ export default function EditarProdutoPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-semibold text-forest mb-2">Preço Atacado (R$)</label>
-                                        <input type="number" min="0" step="0.01"
+                                        <label className="block text-sm font-semibold text-forest mb-2">Preço Atacado</label>
+                                        <input type="text"
                                             value={formData.wholesale_price}
-                                            onChange={e => setFormData({ ...formData, wholesale_price: e.target.value })}
-                                            onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setFormData(prev => ({ ...prev, wholesale_price: v.toFixed(2) })); }}
+                                            onChange={e => setFormData({ ...formData, wholesale_price: maskCurrency(e.target.value) })}
                                             className="w-full px-4 py-3 rounded-xl bg-amber-50/50 border border-amber-200 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
-                                            placeholder="0.00" />
+                                            placeholder="R$ 0,00" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-forest mb-2">Quantidade Mínima</label>
+                                        <label className="block text-sm font-semibold text-forest mb-2">Quantidade Mínima (Unidades)</label>
                                         <input type="number" min="1" step="1"
                                             value={formData.wholesale_min_qty}
                                             onChange={e => setFormData({ ...formData, wholesale_min_qty: e.target.value })}
@@ -266,13 +279,12 @@ export default function EditarProdutoPage() {
 
                                     {formData.wholesale_label && (
                                         <div>
-                                            <label className="block text-sm font-semibold text-forest mb-2">Valor da Personalização (R$)</label>
-                                            <input type="number" min="0" step="0.01"
+                                            <label className="block text-sm font-semibold text-forest mb-2">Valor da Personalização</label>
+                                            <input type="text"
                                                 value={formData.wholesale_label_price}
-                                                onChange={e => setFormData({ ...formData, wholesale_label_price: e.target.value })}
-                                                onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setFormData(prev => ({ ...prev, wholesale_label_price: v.toFixed(2) })); }}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border border-amber-300 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
-                                                placeholder="0.00" />
+                                                onChange={e => setFormData({ ...formData, wholesale_label_price: maskCurrency(e.target.value) })}
+                                                className="w-full px-4 py-3 rounded-xl bg-white border border-amber-200 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
+                                                placeholder="R$ 0,00" />
                                         </div>
                                     )}
                                 </div>

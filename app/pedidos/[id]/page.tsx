@@ -5,13 +5,16 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/app/components/Sidebar';
 import { createClient } from '@/lib/supabase/client';
-import { ChevronLeft, User, Calendar, MapPin, Package as PackageIcon, Phone } from 'lucide-react';
+import { ChevronLeft, User, Calendar, MapPin, Package as PackageIcon, Phone, ChevronDown, Check } from 'lucide-react';
 
 type OrderItem = {
     productId?: string;
     productName: string;
     price: number;
     quantity: number;
+    image_url?: string;
+    wholesale_label?: boolean;
+    wholesale_label_price?: number;
 };
 
 type Order = {
@@ -42,6 +45,7 @@ export default function VerPedidoPage() {
 
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
 
     useEffect(() => {
         if (id) loadOrder();
@@ -56,6 +60,33 @@ export default function VerPedidoPage() {
 
     const formatPrice = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     const formatDate = (d: string) => new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    function formatPhone(value: string) {
+        const v = value.replace(/\D/g, '');
+        if (v.length <= 11) {
+            if (v.length <= 2) return v.replace(/(\d{2})/, '($1');
+            if (v.length <= 6) return v.replace(/(\d{2})(\d{4})/, '($1) $2');
+            if (v.length <= 10) return v.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+        }
+        return value.substring(0, 15);
+    }
+
+    function formatDocument(value: string | undefined | null) {
+        if (!value) return '';
+        const v = value.replace(/\D/g, '');
+        if (v.length > 11) {
+            return `CNPJ: ${v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2}).*/, '$1.$2.$3/$4-$5')}`;
+        }
+        return `CPF: ${v.replace(/(\d{3})(\d{3})(\d{3})(\d{2}).*/, '$1.$2.$3-$4')}`;
+    }
+
+    const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newStatus = e.target.value;
+        const supabase = createClient();
+        setOrder(prev => prev ? { ...prev, status: newStatus } : null);
+        await supabase.from('orders').update({ status: newStatus }).eq('id', id);
+    };
 
     if (loading) {
         return (
@@ -98,7 +129,40 @@ export default function VerPedidoPage() {
                             <div>
                                 <div className="flex items-center gap-3">
                                     <h1 className="text-2xl font-bold text-forest">Pedido {order.code || order.id.substring(0, 8).toUpperCase()}</h1>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${style.bg} ${style.text}`}>{style.label}</span>
+                                    <div className="relative">
+                                        <div
+                                            onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+                                            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold cursor-pointer transition-colors ${style.bg} ${style.text}`}
+                                        >
+                                            {style.label}
+                                            <ChevronDown size={14} className={`transition-transform ${isStatusMenuOpen ? 'rotate-180' : ''}`} />
+                                        </div>
+
+                                        {isStatusMenuOpen && (
+                                            <>
+                                                <div className="fixed inset-0 z-40" onClick={() => setIsStatusMenuOpen(false)} />
+                                                <div className="absolute top-full mt-2 left-0 w-44 bg-white border border-mint-dark rounded-xl shadow-[0_4px_24px_0_rgba(15,41,38,0.1)] z-50 overflow-hidden">
+                                                    {Object.entries(statusConfig).map(([key, config]) => (
+                                                        <div
+                                                            key={key}
+                                                            onClick={async () => {
+                                                                setIsStatusMenuOpen(false);
+                                                                await handleStatusChange({ target: { value: key } } as any);
+                                                            }}
+                                                            className={`px-3 py-2.5 text-sm cursor-pointer transition-colors hover:bg-mint flex items-center gap-2 ${order.status === key ? 'bg-mint font-medium ' + config.text : 'text-forest/70 hover:text-forest'}`}
+                                                        >
+                                                            {order.status === key ? (
+                                                                <Check size={14} className={config.text} />
+                                                            ) : (
+                                                                <div className="w-[14px]" />
+                                                            )}
+                                                            <span>{config.label}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-2 text-forest/50 text-sm mt-1">
                                     <Calendar size={14} />
@@ -120,18 +184,35 @@ export default function VerPedidoPage() {
                                 </div>
                                 <div className="divide-y divide-mint-dark">
                                     {items.map((item, idx) => (
-                                        <div key={idx} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
-                                            <div>
-                                                <p className="font-bold text-forest text-sm">{item.productName}</p>
-                                                {item.productId && (
-                                                    <p className="text-[10px] uppercase tracking-wider font-mono text-forest/40 mt-0.5">REF: #{item.productId.substring(0, 8).toUpperCase()}</p>
-                                                )}
-                                                <p className="text-forest/60 text-xs mt-0.5">{formatPrice(item.price)} cada</p>
+                                        <div key={idx} className="py-4 first:pt-0 last:pb-0 flex flex-col gap-2">
+                                            <div className="flex items-center justify-between gap-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 flex-shrink-0 bg-mint rounded-lg overflow-hidden flex items-center justify-center border border-mint-dark">
+                                                        {item.image_url ? (
+                                                            <img src={item.image_url} alt={item.productName} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <PackageIcon className="text-forest/30 w-5 h-5" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-forest text-sm line-clamp-1 break-all">{item.productName}</p>
+                                                        {item.productId && (
+                                                            <p className="text-[10px] uppercase tracking-wider font-mono text-forest/40 mt-0.5">REF: #{item.productId.substring(0, 8).toUpperCase()}</p>
+                                                        )}
+                                                        <p className="text-forest/60 text-xs mt-0.5">{formatPrice(item.price)} cada</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right flex-shrink-0">
+                                                    <p className="text-forest font-bold text-sm">{formatPrice(item.price * item.quantity)}</p>
+                                                    <p className="text-forest/60 text-xs mt-0.5">Qtd: {item.quantity}</p>
+                                                </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-forest font-bold text-sm">{formatPrice(item.price * item.quantity)}</p>
-                                                <p className="text-forest/60 text-xs mt-0.5">Qtd: {item.quantity}</p>
-                                            </div>
+                                            {item.wholesale_label && item.wholesale_label_price && (
+                                                <div className="flex items-center justify-between text-[11px] text-amber-700 mt-1.5 ml-[60px] bg-amber-50 rounded px-2 py-1 border border-amber-100">
+                                                    <span className="truncate pr-2">+ Etiqueta ({item.quantity}x de {formatPrice(item.wholesale_label_price)})</span>
+                                                    <span className="font-bold flex-shrink-0">+{formatPrice(item.wholesale_label_price * item.quantity)}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -158,13 +239,13 @@ export default function VerPedidoPage() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-forest text-sm">{order.customer_name}</p>
-                                        {order.customer_cpf && <p className="text-forest/50 text-xs mt-0.5">CPF: {order.customer_cpf}</p>}
+                                        {order.customer_cpf && <p className="text-forest/50 text-xs mt-0.5">{formatDocument(order.customer_cpf)}</p>}
                                     </div>
                                 </div>
                                 {order.customer_phone && (
                                     <div className="flex items-center gap-2 text-forest/60 text-sm mb-4">
                                         <Phone size={14} />
-                                        <span>{order.customer_phone}</span>
+                                        <span>{formatPhone(order.customer_phone)}</span>
                                     </div>
                                 )}
                                 {order.customer_phone && (

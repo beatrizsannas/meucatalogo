@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { CartProvider, useCart } from '@/app/context/CartContext';
+import CartDrawer from '@/app/components/CartDrawer';
 import { Leaf, ShoppingCart, ChevronLeft, Tag } from 'lucide-react';
 
 type Product = {
@@ -25,6 +26,8 @@ type Profile = {
     logo_url: string;
     slug: string;
     description: string;
+    whatsapp: string;
+    brand_color: string;
 };
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -38,7 +41,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 function ProductPage() {
     const params = useParams();
     const id = params?.id as string;
-    const { addToCart } = useCart();
+    const { addToCart, setIsCartOpen, cartCount } = useCart();
 
     const [product, setProduct] = useState<Product | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
@@ -54,7 +57,7 @@ function ProductPage() {
         if (!prod) { setLoading(false); return; }
         setProduct(prod);
 
-        const { data: prof } = await supabase.from('profiles').select('id, store_name, logo_url, slug, description').eq('id', prod.profile_id).single();
+        const { data: prof } = await supabase.from('profiles').select('id, store_name, logo_url, slug, description, whatsapp, brand_color').eq('id', prod.profile_id).single();
         setProfile(prof);
         setLoading(false);
     }
@@ -93,10 +96,14 @@ function ProductPage() {
                         Voltar ao catálogo
                     </Link>
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-lime flex items-center justify-center">
-                            <Leaf size={14} className="text-forest" />
-                        </div>
-                        <span className="font-bold text-forest text-sm">Meu Catálogo</span>
+                        <button onClick={() => setIsCartOpen(true)} className="relative w-10 h-10 flex items-center justify-center text-forest/60 hover:bg-mint rounded-full transition-colors">
+                            <ShoppingCart size={20} />
+                            {cartCount > 0 && (
+                                <span className="absolute top-1 right-1 w-4 h-4 bg-lime text-forest text-[10px] font-bold rounded-full flex items-center justify-center">
+                                    {cartCount}
+                                </span>
+                            )}
+                        </button>
                     </div>
                 </div>
             </nav>
@@ -190,17 +197,21 @@ function ProductPage() {
                             </button>
                         ) : (
                             <button
-                                onClick={() => addToCart({
-                                    id: product.id,
-                                    name: product.name,
-                                    price: product.price,
-                                    image: product.image_url,
-                                    category: product.category,
-                                    status: product.status as any,
-                                    description: product.description,
-                                    whatsapp: '',
-                                    tags: product.tags,
-                                })}
+                                onClick={() => {
+                                    addToCart({
+                                        id: product.id,
+                                        name: product.name,
+                                        price: product.price,
+                                        image: product.image_url || '',
+                                        image_url: product.image_url,
+                                        category: product.category,
+                                        status: product.status as any,
+                                        description: product.description,
+                                        whatsapp: '',
+                                        tags: product.tags,
+                                    });
+                                    setIsCartOpen(true);
+                                }}
                                 className="w-full flex items-center justify-center gap-2.5 bg-lime text-forest font-bold py-4 rounded-full text-base hover:bg-lime-dark active:scale-95 transition-all duration-200 shadow-sm"
                             >
                                 <ShoppingCart size={20} />
@@ -210,6 +221,14 @@ function ProductPage() {
                     </div>
                 </div>
             </div>
+            {/* Cart Drawer */}
+            {profile && (
+                <CartDrawer 
+                    profileId={profile.id} 
+                    whatsapp={profile.whatsapp} 
+                    brandColor={profile.brand_color} 
+                />
+            )}
         </div>
     );
 }
