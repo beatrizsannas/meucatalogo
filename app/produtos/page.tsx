@@ -6,7 +6,7 @@ import Sidebar from '@/app/components/Sidebar';
 import Badge from '@/app/components/Badge';
 import { createClient } from '@/lib/supabase/client';
 import {
-    Plus, Share2, Search, ChevronDown, Pencil, Trash2, AlertTriangle
+    Plus, Share2, Search, ChevronDown, Pencil, Trash2, AlertTriangle, Boxes, X
 } from 'lucide-react';
 
 const categories = ['Todos', 'Móveis', 'Iluminação', 'Decoração', 'Outros'];
@@ -40,6 +40,9 @@ export default function ProdutosPage() {
     const [slugInput, setSlugInput] = useState('');
     const [slugError, setSlugError] = useState('');
     const [isSavingSlug, setIsSavingSlug] = useState(false);
+
+    // Wholesale Modal
+    const [showWholesaleModal, setShowWholesaleModal] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -155,6 +158,10 @@ export default function ProdutosPage() {
                         <button onClick={() => setShowShareModal(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-forest/20 bg-white text-forest text-sm font-semibold hover:bg-mint transition-colors shadow-soft">
                             <Share2 size={15} />
                             Compartilhar Catálogo
+                        </button>
+                        <button onClick={() => setShowWholesaleModal(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-amber-300 bg-amber-50 text-amber-800 text-sm font-semibold hover:bg-amber-100 transition-colors shadow-soft">
+                            <Boxes size={15} />
+                            Catálogo Atacado
                         </button>
                         <Link href="/produtos/novo" className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-lime text-forest text-sm font-bold hover:bg-lime-dark transition-colors shadow-sm">
                             <Plus size={16} />
@@ -277,6 +284,58 @@ export default function ProdutosPage() {
                                 {isDeleting ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Trash2 size={16} />}
                                 {isDeleting ? 'Excluindo...' : 'Sim, excluir'}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Wholesale Catalog Modal */}
+            {showWholesaleModal && profile && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}>
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
+                        <button onClick={() => setShowWholesaleModal(false)} className="absolute top-6 right-6 text-forest/40 hover:text-forest transition-colors">
+                            <X size={20} />
+                        </button>
+
+                        <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-5">
+                            <Boxes size={24} className="text-amber-700" />
+                        </div>
+
+                        <h2 className="text-xl font-bold text-forest text-center mb-1">Catálogo Atacado</h2>
+                        <p className="text-forest/60 text-sm text-center mb-6">Compartilhe este link com seus clientes atacadistas.</p>
+
+                        <div className="mb-6">
+                            <label className="block text-xs font-bold text-forest mb-2">Link do Catálogo Atacado</label>
+                            <div className="flex items-center bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+                                <span className="pl-4 pr-2 py-3 text-xs text-amber-700 select-none bg-amber-100 border-r border-amber-200 font-mono whitespace-nowrap">
+                                    meucatalogo.com/a/
+                                </span>
+                                <span className="px-3 py-3 text-sm text-amber-900 font-semibold truncate">{profile.slug}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={async () => {
+                                    const url = `${window.location.origin}/a/${profile.slug}`;
+                                    await navigator.clipboard.writeText(url);
+                                    setShowWholesaleModal(false);
+                                    setShowToast('Link do atacado copiado!');
+                                    setTimeout(() => setShowToast(''), 3000);
+                                }}
+                                className="w-full py-3.5 rounded-full bg-amber-500 text-white font-bold text-sm hover:bg-amber-600 transition-colors shadow-card flex items-center justify-center gap-2"
+                            >
+                                <Share2 size={16} />
+                                Copiar Link
+                            </button>
+                            <a
+                                href={`/a/${profile.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-3.5 rounded-full border border-mint-dark text-forest font-semibold text-sm hover:bg-mint transition-colors text-center"
+                            >
+                                Visualizar Catálogo Atacado
+                            </a>
                         </div>
                     </div>
                 </div>

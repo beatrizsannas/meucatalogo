@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/app/components/Sidebar';
-import { ChevronLeft, Save, Image as ImageIcon, Tag, AlignLeft, Upload, Link2 } from 'lucide-react';
+import { ChevronLeft, Save, Image as ImageIcon, Tag, AlignLeft, Upload, Link2, Boxes, Package, ToggleLeft, ToggleRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/utils/image';
 
@@ -24,6 +24,7 @@ export default function NovoProdutoPage() {
     const [formData, setFormData] = useState({
         name: '', price: '', category: '', status: 'em-estoque',
         image: '', description: '', tags: '',
+        wholesale_price: '', wholesale_min_qty: '', wholesale_label: false, wholesale_label_price: '',
     });
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,6 +63,10 @@ export default function NovoProdutoPage() {
             image_url: formData.image,
             description: formData.description,
             tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
+            wholesale_price: formData.wholesale_price ? parseFloat(formData.wholesale_price) : null,
+            wholesale_min_qty: formData.wholesale_min_qty ? parseInt(formData.wholesale_min_qty) : null,
+            wholesale_label: formData.wholesale_label,
+            wholesale_label_price: formData.wholesale_label_price ? parseFloat(formData.wholesale_label_price) : null,
         });
         if (err) { setError(err.message); setIsSaving(false); return; }
         router.push('/produtos');
@@ -204,6 +209,67 @@ export default function NovoProdutoPage() {
                                             className="w-full pl-11 pr-4 py-3 rounded-xl bg-mint/30 border border-mint-dark text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all"
                                             placeholder="Ex: Madeira, Vintage, Frete Grátis" />
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Wholesale Section */}
+                            <div className="mt-8 pt-8 border-t border-mint-dark">
+                                <div className="flex items-center gap-2.5 mb-5">
+                                    <div className="w-8 h-8 rounded-xl bg-amber-50 flex items-center justify-center">
+                                        <Boxes size={16} className="text-amber-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-bold text-forest">Informações para Atacado</h3>
+                                        <p className="text-xs text-forest/40">Visível somente no Catálogo Atacado</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-forest mb-2">Preço Atacado (R$)</label>
+                                        <input type="number" min="0" step="0.01"
+                                            value={formData.wholesale_price}
+                                            onChange={e => setFormData({ ...formData, wholesale_price: e.target.value })}
+                                            onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setFormData(prev => ({ ...prev, wholesale_price: v.toFixed(2) })); }}
+                                            className="w-full px-4 py-3 rounded-xl bg-amber-50/50 border border-amber-200 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
+                                            placeholder="0.00" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-forest mb-2">Quantidade Mínima</label>
+                                        <input type="number" min="1" step="1"
+                                            value={formData.wholesale_min_qty}
+                                            onChange={e => setFormData({ ...formData, wholesale_min_qty: e.target.value })}
+                                            className="w-full px-4 py-3 rounded-xl bg-amber-50/50 border border-amber-200 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
+                                            placeholder="Ex: 10" />
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 p-4 bg-amber-50/60 border border-amber-200 rounded-2xl">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="text-sm font-semibold text-forest">Personalização com Etiqueta</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData(prev => ({ ...prev, wholesale_label: !prev.wholesale_label }))}
+                                            className="flex items-center gap-1.5 transition-colors"
+                                        >
+                                            {formData.wholesale_label
+                                                ? <ToggleRight size={32} className="text-amber-500" />
+                                                : <ToggleLeft size={32} className="text-forest/30" />}
+                                        </button>
+                                    </div>
+                                    <p className="text-xs text-forest/40 mb-3">Ofereça personalização com etiqueta neste produto</p>
+
+                                    {formData.wholesale_label && (
+                                        <div>
+                                            <label className="block text-sm font-semibold text-forest mb-2">Valor da Personalização (R$)</label>
+                                            <input type="number" min="0" step="0.01"
+                                                value={formData.wholesale_label_price}
+                                                onChange={e => setFormData({ ...formData, wholesale_label_price: e.target.value })}
+                                                onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v)) setFormData(prev => ({ ...prev, wholesale_label_price: v.toFixed(2) })); }}
+                                                className="w-full px-4 py-3 rounded-xl bg-white border border-amber-300 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
+                                                placeholder="0.00" />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
