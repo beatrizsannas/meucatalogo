@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Leaf, MessageCircle, ChevronLeft, Tag, Boxes, ShoppingCart } from 'lucide-react';
+import { Leaf, MessageCircle, ChevronLeft, Tag, Boxes, ShoppingCart, Check } from 'lucide-react';
 import { useWholesaleCart } from '@/app/context/WholesaleCartContext';
 import WholesaleCartDrawer from '@/app/components/WholesaleCartDrawer';
 
@@ -52,6 +52,11 @@ export default function WholesaleProductPage() {
     const [product, setProduct] = useState<Product | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // Customization selection state
+    const [customizationChoice, setCustomizationChoice] = useState<'none' | 'with' | null>(null);
+    const [selectedCustomizations, setSelectedCustomizations] = useState<Set<number>>(new Set());
+    const [showValidationError, setShowValidationError] = useState(false);
 
     useEffect(() => {
         if (id) loadProduct();
@@ -137,12 +142,9 @@ export default function WholesaleProductPage() {
                         alt={product.name}
                         className="w-full h-full object-contain"
                     />
-                    <div className="absolute top-4 left-4 flex gap-2">
+                    <div className="absolute top-4 left-4">
                         <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ${status.color}`}>
                             {status.label}
-                        </span>
-                        <span className="bg-amber-400 text-amber-900 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm uppercase tracking-wide">
-                            Atacado
                         </span>
                     </div>
                 </div>
@@ -176,24 +178,77 @@ export default function WholesaleProductPage() {
                         )}
                     </div>
 
-                    {/* Personalizações */}
+                    {/* Personalizações - Interactive Selection */}
                     {product.wholesale_customizations && product.wholesale_customizations.length > 0 && (
-                        <div className="bg-amber-50/80 rounded-2xl p-4 border border-amber-200 mb-4">
+                        <div data-customization-section className={`rounded-2xl p-4 border mb-4 transition-colors ${showValidationError && customizationChoice === null ? 'bg-red-50/50 border-red-300 animate-pulse' : 'bg-amber-50/80 border-amber-200'}`}>
                             <div className="flex items-center gap-2 mb-3">
                                 <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                                     <Tag size={15} className="text-amber-700" />
                                 </div>
-                                <p className="font-semibold text-amber-900 text-sm">Personalizações disponíveis</p>
+                                <div>
+                                    <p className="font-semibold text-amber-900 text-sm">Personalização</p>
+                                    <p className="text-[11px] text-amber-700/50">Selecione uma opção obrigatória</p>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                {product.wholesale_customizations.map((c, idx) => (
-                                    <div key={idx} className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-amber-100">
-                                        <span className="text-sm text-forest font-medium">{c.name}</span>
-                                        <span className="text-sm text-amber-700 font-bold">+ {formatPrice(c.price)} /unid</span>
-                                    </div>
-                                ))}
+
+                            {/* Com ou Sem */}
+                            <div className="grid grid-cols-2 gap-2 mb-3">
+                                <button
+                                    type="button"
+                                    onClick={() => { setCustomizationChoice('none'); setSelectedCustomizations(new Set()); setShowValidationError(false); }}
+                                    className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-[13px] font-bold transition-all ${customizationChoice === 'none' ? 'bg-white border-amber-400 text-amber-900 shadow-sm ring-2 ring-amber-300' : 'bg-white/60 border-amber-200 text-forest/50 hover:border-amber-300'}`}
+                                >
+                                    {customizationChoice === 'none' && <Check size={13} className="text-amber-600 flex-shrink-0" />}
+                                    Sem
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setCustomizationChoice('with');
+                                        setSelectedCustomizations(new Set(product!.wholesale_customizations.map((_, i) => i)));
+                                        setShowValidationError(false);
+                                    }}
+                                    className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border text-[13px] font-bold transition-all ${customizationChoice === 'with' ? 'bg-amber-400 border-amber-500 text-amber-900 shadow-sm ring-2 ring-amber-300' : 'bg-white/60 border-amber-200 text-forest/50 hover:border-amber-300'}`}
+                                >
+                                    {customizationChoice === 'with' && <Check size={13} className="flex-shrink-0" />}
+                                    Com
+                                </button>
                             </div>
-                            <p className="text-amber-700/50 text-xs mt-2">Selecione no carrinho ao adicionar o produto</p>
+
+                            {/* Customization options - shown when "with" selected */}
+                            {customizationChoice === 'with' && (
+                                <div className="space-y-2 mt-3 pt-3 border-t border-amber-200/50">
+                                    <p className="text-[11px] text-amber-700/60 font-medium mb-1">Escolha as personalizações desejadas:</p>
+                                    {product.wholesale_customizations.map((c, idx) => {
+                                        const isChecked = selectedCustomizations.has(idx);
+                                        return (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    const newSet = new Set(selectedCustomizations);
+                                                    if (isChecked) newSet.delete(idx); else newSet.add(idx);
+                                                    // Must have at least 1 if choosing 'with'
+                                                    if (newSet.size === 0) setCustomizationChoice('none');
+                                                    setSelectedCustomizations(newSet);
+                                                }}
+                                                className={`flex items-center justify-between px-3 py-2.5 rounded-xl border cursor-pointer transition-all ${isChecked ? 'bg-white border-amber-300 shadow-sm' : 'bg-white/40 border-amber-100 hover:bg-white/70 hover:border-amber-200'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isChecked ? 'border-amber-500 bg-amber-400' : 'border-amber-200 bg-white'}`}>
+                                                        {isChecked && <Check size={12} className="text-white" />}
+                                                    </div>
+                                                    <span className={`text-sm font-medium ${isChecked ? 'text-forest' : 'text-forest/50'}`}>{c.name}</span>
+                                                </div>
+                                                <span className={`text-sm font-bold ${isChecked ? 'text-amber-700' : 'text-forest/40'}`}>+ {formatPrice(c.price)} /unid</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {showValidationError && customizationChoice === null && (
+                                <p className="text-red-500 text-xs font-semibold mt-2 text-center">⚠ Selecione se deseja com ou sem personalização</p>
+                            )}
                         </div>
                     )}
 
@@ -249,7 +304,21 @@ export default function WholesaleProductPage() {
                         ) : (
                             <button
                                 onClick={() => {
-                                    addToCart(product, product.wholesale_min_qty || 1);
+                                    const hasCustomizations = product.wholesale_customizations && product.wholesale_customizations.length > 0;
+                                    if (hasCustomizations && customizationChoice === null) {
+                                        setShowValidationError(true);
+                                        // Scroll to customization section
+                                        document.querySelector('[data-customization-section]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        return;
+                                    }
+                                    // Build the product with selected customizations embedded
+                                    const enrichedProduct = {
+                                        ...product,
+                                        wholesale_customizations: customizationChoice === 'with'
+                                            ? product.wholesale_customizations.filter((_: any, i: number) => selectedCustomizations.has(i))
+                                            : [],
+                                    };
+                                    addToCart(enrichedProduct, product.wholesale_min_qty || 1);
                                     setIsCartOpen(true);
                                 }}
                                 className="w-full flex items-center justify-center gap-2.5 bg-amber-400 text-amber-900 font-bold py-4 rounded-full text-base hover:bg-amber-500 active:scale-95 transition-all duration-200 shadow-sm border border-amber-500"

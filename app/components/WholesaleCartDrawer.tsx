@@ -492,12 +492,20 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                                     >
                                         Finalizar Pedido
                                     </button>
-                                    <button
-                                        onClick={clearCart}
-                                        className="w-full py-2.5 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
-                                    >
-                                        Limpar Carrinho
-                                    </button>
+                                    <div className="flex items-center justify-between">
+                                        <button
+                                            onClick={clearCart}
+                                            className="py-2 px-3 text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                                        >
+                                            Limpar Carrinho
+                                        </button>
+                                        <button
+                                            onClick={() => setIsCartOpen(false)}
+                                            className="py-2 px-3 text-xs font-bold text-forest/50 hover:text-forest hover:bg-amber-100 rounded-full transition-colors"
+                                        >
+                                            Continuar Comprando
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}

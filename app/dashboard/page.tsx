@@ -41,6 +41,9 @@ function MiniChart() {
 export default function DashboardPage() {
     const [stats, setStats] = useState({ totalProducts: 0, activeProducts: 0, totalOrders: 0, pendingOrders: 0 });
     const [loading, setLoading] = useState(true);
+    const [newOrders, setNewOrders] = useState<{ id: string; customer_name: string; total: number; date: string; code: string }[]>([]);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
         loadStats();
@@ -55,8 +58,36 @@ export default function DashboardPage() {
         const { count: orders } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('profile_id', user.id);
         const { count: pending } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('profile_id', user.id).eq('status', 'pendente');
         setStats({ totalProducts: total || 0, activeProducts: active || 0, totalOrders: orders || 0, pendingOrders: pending || 0 });
+
+        // Load recent orders for notifications
+        const lastReadTimestamp = localStorage.getItem(`lastReadOrders_${user.id}`) || '1970-01-01T00:00:00Z';
+        const { data: recentOrders } = await supabase
+            .from('orders')
+            .select('id, customer_name, total, date, code')
+            .eq('profile_id', user.id)
+            .order('date', { ascending: false })
+            .limit(20);
+
+        if (recentOrders) {
+            const unread = recentOrders.filter(o => new Date(o.date) > new Date(lastReadTimestamp));
+            setNewOrders(recentOrders.slice(0, 10));
+            setUnreadCount(unread.length);
+        }
+
         setLoading(false);
     }
+
+    const handleMarkAsRead = async () => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            localStorage.setItem(`lastReadOrders_${user.id}`, new Date().toISOString());
+        }
+        setUnreadCount(0);
+    };
+
+    const formatPrice = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const formatDate = (s: string) => new Date(s).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 
     return (
         <div className="flex min-h-screen bg-mint">
@@ -67,15 +98,82 @@ export default function DashboardPage() {
                         <h1 className="text-2xl font-bold text-forest">Visão Geral</h1>
                         <p className="text-forest/50 text-sm mt-0.5">Bem-vindo de volta, veja o que está acontecendo.</p>
                     </div>
-                    <button className="relative flex items-center gap-2 px-4 py-2.5 rounded-full border border-mint-dark bg-white text-forest text-sm font-medium hover:bg-mint transition-colors shadow-soft">
-                        <div className="relative">
-                            <Bell size={15} />
-                            {stats.pendingOrders > 0 && !loading && (
-                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse ring-2 ring-white"></span>
+                    <div className="relative">
+                        <button
+                            onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications && unreadCount > 0) handleMarkAsRead(); }}
+                            className="relative w-10 h-10 rounded-full border border-mint-dark bg-white text-forest flex items-center justify-center hover:bg-mint transition-colors shadow-soft"
+                        >
+                            <Bell size={18} />
+                            {unreadCount > 0 && !loading && (
+                                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white animate-pulse">
+                                    {unreadCount > 9 ? '9+' : unreadCount}
+                                </span>
                             )}
-                        </div>
-                        Últimos 30 dias
-                    </button>
+                        </button>
+
+                        {showNotifications && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-mint-dark shadow-[0_8px_30px_0_rgba(15,41,38,0.12)] z-50 overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-mint-dark flex items-center justify-between">
+                                        <h3 className="font-bold text-forest text-sm">Notificações</h3>
+                                        {unreadCount > 0 && (
+                                            <button
+                                                onClick={handleMarkAsRead}
+                                                className="text-[11px] font-semibold text-forest/50 hover:text-forest transition-colors"
+                                            >
+                                                Marcar como lido
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="max-h-72 overflow-y-auto">
+                                        {newOrders.length === 0 ? (
+                                            <div className="py-8 text-center text-forest/40">
+                                                <Bell size={24} className="mx-auto mb-2 opacity-40" />
+                                                <p className="text-sm font-medium">Nenhum pedido recente</p>
+                                            </div>
+                                        ) : (
+                                            newOrders.map((order) => {
+                                                const lastRead = typeof window !== 'undefined' ? localStorage.getItem(`lastReadOrders_${order.id}`) : null;
+                                                const isNew = !lastRead && unreadCount > 0;
+                                                return (
+                                                    <a
+                                                        key={order.id}
+                                                        href={`/pedidos/${order.id}`}
+                                                        className={`flex items-start gap-3 px-4 py-3 hover:bg-mint/50 transition-colors border-b border-mint-dark/50 last:border-0 ${isNew ? 'bg-lime/10' : ''}`}
+                                                    >
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isNew ? 'bg-lime/30' : 'bg-mint'}`}>
+                                                            <ShoppingBag size={14} className="text-forest" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-semibold text-forest leading-tight truncate">
+                                                                {order.customer_name || 'Cliente'}
+                                                            </p>
+                                                            <p className="text-xs text-forest/50 mt-0.5">
+                                                                Pedido {order.code || order.id.substring(0, 8).toUpperCase()} • {formatPrice(order.total)}
+                                                            </p>
+                                                            <p className="text-[10px] text-forest/30 mt-0.5">{formatDate(order.date)}</p>
+                                                        </div>
+                                                        {isNew && (
+                                                            <div className="w-2 h-2 rounded-full bg-lime flex-shrink-0 mt-2" />
+                                                        )}
+                                                    </a>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                    {newOrders.length > 0 && (
+                                        <a
+                                            href="/pedidos"
+                                            className="block text-center py-3 text-xs font-bold text-forest/50 hover:text-forest hover:bg-mint/50 transition-colors border-t border-mint-dark"
+                                        >
+                                            Ver todos os pedidos
+                                        </a>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">

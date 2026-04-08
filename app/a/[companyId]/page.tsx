@@ -301,22 +301,6 @@ function WholesaleProductCard({ product, formatPrice, companyId }: {
                         </div>
                     )}
 
-                    {/* Personalização com etiqueta */}
-                    {product.wholesale_label && (
-                        <div className="flex items-start gap-1.5 bg-amber-50 rounded-xl px-2.5 py-2 border border-amber-200">
-                            <Tag size={11} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                            <div>
-                                <p className="text-[11px] font-semibold text-amber-800 leading-tight">
-                                    + Personalizado c/ etiqueta
-                                </p>
-                                {product.wholesale_label_price && (
-                                    <p className="text-[11px] text-amber-700 font-bold">
-                                        {formatPrice(product.wholesale_label_price)}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    )}
 
                     {/* CTA */}
                     {product.status !== 'esgotado' && (

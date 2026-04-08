@@ -44,7 +44,11 @@ export function WholesaleCartProvider({ children }: { children: ReactNode }) {
                         : item
                 );
             }
-            return [...prev, { product, quantity: minQty, hasLabel: false, selectedCustomizations: [] }];
+            // Pre-select customizations passed from product detail page
+            const preSelected: CustomizationOption[] = Array.isArray(product.wholesale_customizations)
+                ? product.wholesale_customizations.map((c: any) => ({ name: c.name, price: c.price }))
+                : [];
+            return [...prev, { product, quantity: minQty, hasLabel: preSelected.length > 0, selectedCustomizations: preSelected }];
         });
         setIsCartOpen(true);
     };

@@ -368,20 +368,20 @@ export default function ProdutosPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 cursor-default" style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}>
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 relative">
                         <button onClick={() => setShowShareModal(false)} className="absolute top-6 right-6 text-forest/40 hover:text-forest transition-colors">
-                            X
+                            <X size={20} />
                         </button>
 
-                        <div className="w-14 h-14 rounded-full bg-mint flex items-center justify-center mx-auto mb-5 text-forest">
-                            <Share2 size={24} />
+                        <div className="w-14 h-14 rounded-full bg-mint flex items-center justify-center mx-auto mb-5">
+                            <Share2 size={24} className="text-forest" />
                         </div>
 
-                        <h2 className="text-xl font-bold text-forest text-center mb-2">Compartilhar Catálogo</h2>
-                        <p className="text-forest/60 text-sm text-center mb-6">Personalize o link público do seu catálogo.</p>
+                        <h2 className="text-xl font-bold text-forest text-center mb-1">Catálogo Varejo</h2>
+                        <p className="text-forest/60 text-sm text-center mb-6">Compartilhe este link com seus clientes.</p>
 
                         <div className="mb-6">
-                            <label className="block text-xs font-bold text-forest mb-2">Seu Link Público</label>
+                            <label className="block text-xs font-bold text-forest mb-2">Link do Catálogo Varejo</label>
                             <div className="flex items-center bg-mint/30 border border-mint-dark rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-lime transition-shadow">
-                                <span className="pl-4 pr-1 py-3 text-sm text-forest/40 select-none bg-mint-dark/10 border-r border-mint-dark">
+                                <span className="pl-4 pr-2 py-3 text-xs text-forest/50 select-none bg-mint-dark/10 border-r border-mint-dark font-mono whitespace-nowrap">
                                     meucatalogo.com/c/
                                 </span>
                                 <input
@@ -393,23 +393,34 @@ export default function ProdutosPage() {
                                 />
                             </div>
                             {slugError && <p className="text-red-500 text-xs font-medium mt-2">{slugError}</p>}
+                            {slugInput !== profile.slug && (
+                                <button
+                                    onClick={handleSaveSlug}
+                                    disabled={isSavingSlug}
+                                    className="w-full mt-3 py-2.5 rounded-full bg-forest/10 text-forest font-bold text-xs hover:bg-forest/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isSavingSlug ? <div className="w-3 h-3 border-2 border-forest/30 border-t-forest rounded-full animate-spin" /> : null}
+                                    {isSavingSlug ? 'Salvando...' : 'Salvar Alterações no Link'}
+                                </button>
+                            )}
                         </div>
 
                         <div className="flex flex-col gap-3">
                             <button
-                                onClick={handleSaveSlug}
-                                disabled={isSavingSlug || slugInput === profile.slug}
-                                className="w-full py-3.5 rounded-full bg-forest text-white font-bold text-sm hover:bg-forest/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-card"
-                            >
-                                {isSavingSlug ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-                                {isSavingSlug ? 'Salvando...' : 'Salvar Alterações'}
-                            </button>
-                            <button
                                 onClick={handleCopyLink}
-                                className="w-full py-3.5 rounded-full border border-mint-dark text-forest font-semibold text-sm hover:bg-mint transition-colors"
+                                className="w-full py-3.5 rounded-full bg-forest text-white font-bold text-sm hover:bg-forest/90 transition-colors shadow-card flex items-center justify-center gap-2"
                             >
+                                <Share2 size={16} />
                                 Copiar Link
                             </button>
+                            <a
+                                href={`/c/${profile.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full py-3.5 rounded-full border border-mint-dark text-forest font-semibold text-sm hover:bg-mint transition-colors text-center"
+                            >
+                                Visualizar Catálogo Varejo
+                            </a>
                         </div>
                     </div>
                 </div>
