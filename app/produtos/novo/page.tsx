@@ -66,6 +66,13 @@ export default function NovoProdutoPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        const parsedPrice = parseCurrency(formData.price) || 0;
+        if (parsedPrice <= 0) {
+            setError('O preço do produto é obrigatório e deve ser maior que zero.');
+            return;
+        }
+
         setIsSaving(true);
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -109,6 +116,13 @@ export default function NovoProdutoPage() {
                     </div>
 
                     <div className="bg-white rounded-3xl shadow-card border border-mint-dark overflow-hidden">
+                        {error && (
+                            <div className="px-6 sm:px-8 pt-6">
+                                <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium border border-red-200">
+                                    {error}
+                                </div>
+                            </div>
+                        )}
                         <form onSubmit={handleSave} className="p-6 sm:p-8">
                             {/* ── Image Section ── */}
                             <div className="mb-10 pb-10 border-b border-mint-dark">

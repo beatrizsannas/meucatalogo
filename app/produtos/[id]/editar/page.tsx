@@ -94,6 +94,13 @@ export default function EditarProdutoPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        const parsedPrice = parseCurrency(formData.price) || 0;
+        if (parsedPrice <= 0) {
+            setError('O preço do produto é obrigatório e deve ser maior que zero.');
+            return;
+        }
+
         setIsSaving(true);
         const supabase = createClient();
         const parsedCustomizations = formData.wholesale_has_customizations
@@ -145,6 +152,13 @@ export default function EditarProdutoPage() {
                     </div>
 
                     <div className="bg-white rounded-3xl shadow-card border border-mint-dark overflow-hidden">
+                        {error && (
+                            <div className="px-6 sm:px-8 pt-6">
+                                <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm font-medium border border-red-200">
+                                    {error}
+                                </div>
+                            </div>
+                        )}
                         <form onSubmit={handleSave} className="p-6 sm:p-8">
                             {/* Image Section */}
                             <div className="mb-10 pb-10 border-b border-mint-dark">
@@ -197,11 +211,11 @@ export default function EditarProdutoPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-forest mb-2">Preço (R$) *</label>
-                                    <input type="number" required min="0" step="0.01" value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                        onBlur={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) setFormData(prev => ({ ...prev, price: v.toFixed(2) })); }}
+                                    <input type="text" required
+                                        value={formData.price}
+                                        onChange={(e) => setFormData({ ...formData, price: maskCurrency(e.target.value) })}
                                         className="w-full px-4 py-3 rounded-xl bg-mint/30 border border-mint-dark text-forest text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all"
-                                        placeholder="0.00" />
+                                        placeholder="R$ 0,00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-forest mb-2">Categoria</label>
