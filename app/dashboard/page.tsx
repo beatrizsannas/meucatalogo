@@ -41,9 +41,10 @@ function MiniChart() {
 export default function DashboardPage() {
     const [stats, setStats] = useState({ totalProducts: 0, activeProducts: 0, totalOrders: 0, pendingOrders: 0 });
     const [loading, setLoading] = useState(true);
-    const [newOrders, setNewOrders] = useState<{ id: string; customer_name: string; total: number; date: string; code: string }[]>([]);
+    const [newOrders, setNewOrders] = useState<{ id: string; customer_name: string; total: number; date: string }[]>([]);
     const [showNotifications, setShowNotifications] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [lastReadTs, setLastReadTs] = useState('1970-01-01T00:00:00Z');
 
     useEffect(() => {
         loadStats();
@@ -61,9 +62,10 @@ export default function DashboardPage() {
 
         // Load recent orders for notifications
         const lastReadTimestamp = localStorage.getItem(`lastReadOrders_${user.id}`) || '1970-01-01T00:00:00Z';
+        setLastReadTs(lastReadTimestamp);
         const { data: recentOrders } = await supabase
             .from('orders')
-            .select('id, customer_name, total, date, code')
+            .select('id, customer_name, total, date')
             .eq('profile_id', user.id)
             .order('date', { ascending: false })
             .limit(20);
@@ -84,6 +86,7 @@ export default function DashboardPage() {
             localStorage.setItem(`lastReadOrders_${user.id}`, new Date().toISOString());
         }
         setUnreadCount(0);
+        setLastReadTs(new Date().toISOString());
     };
 
     const formatPrice = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -134,8 +137,7 @@ export default function DashboardPage() {
                                             </div>
                                         ) : (
                                             newOrders.map((order) => {
-                                                const lastRead = typeof window !== 'undefined' ? localStorage.getItem(`lastReadOrders_${order.id}`) : null;
-                                                const isNew = !lastRead && unreadCount > 0;
+                                                const isNew = new Date(order.date) > new Date(lastReadTs);
                                                 return (
                                                     <a
                                                         key={order.id}
@@ -150,7 +152,7 @@ export default function DashboardPage() {
                                                                 {order.customer_name || 'Cliente'}
                                                             </p>
                                                             <p className="text-xs text-forest/50 mt-0.5">
-                                                                Pedido {order.code || order.id.substring(0, 8).toUpperCase()} • {formatPrice(order.total)}
+                                                                Pedido {order.id.substring(0, 12).toUpperCase()} • {formatPrice(order.total)}
                                                             </p>
                                                             <p className="text-[10px] text-forest/30 mt-0.5">{formatDate(order.date)}</p>
                                                         </div>

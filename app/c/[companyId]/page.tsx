@@ -284,12 +284,12 @@ function ProductCard({ product, formatPrice, brandColor }: { product: Product; f
                 <div className="mt-auto">
                     <p className="text-lg sm:text-xl font-extrabold text-forest mb-3">{formatPrice(product.price)}</p>
                     {product.status !== 'esgotado' && (
-                        <button
-                            onClick={() => addToCart({ id: product.id, name: product.name, price: product.price, image: product.image_url, category: product.category, status: product.status as any, description: product.description, whatsapp: '', tags: product.tags })}
+                        <Link
+                            href={`/p/${product.id}`}
                             style={{ backgroundColor: brandColor || '#a8e63d' }}
-                            className="w-full py-2 rounded-xl text-forest font-bold text-sm hover:opacity-90 transition-all active:scale-95">
-                            + Adicionar
-                        </button>
+                            className="w-full py-2 rounded-xl text-forest font-bold text-sm hover:opacity-90 transition-all active:scale-95 flex items-center justify-center">
+                            Ver Detalhes
+                        </Link>
                     )}
                 </div>
             </div>
