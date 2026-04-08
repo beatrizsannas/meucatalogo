@@ -1,20 +1,26 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { Product } from '@/app/data/products'; // fallback type se precisar
+
+interface CustomizationOption {
+    name: string;
+    price: number;
+}
 
 interface WholesaleCartItem {
-    product: any; // Using any or product type expanded for wholesale
+    product: any;
     quantity: number;
-    hasLabel: boolean;
+    hasLabel: boolean; // kept for legacy compat
+    selectedCustomizations: CustomizationOption[];
 }
 
 interface WholesaleCartContextType {
     items: WholesaleCartItem[];
-    addToCart: (product: any, minQty: number, hasLabel?: boolean) => void;
+    addToCart: (product: any, minQty: number) => void;
     removeFromCart: (productId: string) => void;
     updateQuantity: (productId: string, quantity: number, minQty: number) => void;
     toggleLabel: (productId: string) => void;
+    toggleCustomization: (productId: string, customization: CustomizationOption) => void;
     clearCart: () => void;
     cartTotal: number;
     cartCount: number;
@@ -28,7 +34,7 @@ export function WholesaleCartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<WholesaleCartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
 
-    const addToCart = (product: any, minQty: number, hasLabel: boolean = false) => {
+    const addToCart = (product: any, minQty: number) => {
         setItems((prev) => {
             const existing = prev.find((item) => item.product.id === product.id);
             if (existing) {
@@ -38,8 +44,7 @@ export function WholesaleCartProvider({ children }: { children: ReactNode }) {
                         : item
                 );
             }
-            // Add directly with minimum quantity required by wholesale
-            return [...prev, { product, quantity: minQty, hasLabel }];
+            return [...prev, { product, quantity: minQty, hasLabel: false, selectedCustomizations: [] }];
         });
         setIsCartOpen(true);
     };
@@ -50,7 +55,6 @@ export function WholesaleCartProvider({ children }: { children: ReactNode }) {
 
     const updateQuantity = (productId: string, quantity: number, minQty: number) => {
         if (quantity < minQty) {
-            // No atacado, se baixar do mínimo a gente tenta remover
             if (quantity <= 0) {
                  removeFromCart(productId);
             }
@@ -63,13 +67,42 @@ export function WholesaleCartProvider({ children }: { children: ReactNode }) {
         );
     };
 
+    // Legacy toggle for backward compat (toggles first customization)
     const toggleLabel = (productId: string) => {
         setItems((prev) =>
-            prev.map((item) =>
-                item.product.id === productId ? { ...item, hasLabel: !item.hasLabel } : item
-            )
+            prev.map((item) => {
+                if (item.product.id !== productId) return item;
+                const customs: CustomizationOption[] = item.product.wholesale_customizations || [];
+                if (customs.length === 0) return { ...item, hasLabel: !item.hasLabel };
+                // Toggle all customizations on/off
+                if (item.selectedCustomizations.length > 0) {
+                    return { ...item, hasLabel: false, selectedCustomizations: [] };
+                } else {
+                    return { ...item, hasLabel: true, selectedCustomizations: [...customs] };
+                }
+            })
         );
-    }
+    };
+
+    const toggleCustomization = (productId: string, customization: CustomizationOption) => {
+        setItems((prev) =>
+            prev.map((item) => {
+                if (item.product.id !== productId) return item;
+                const exists = item.selectedCustomizations.find(c => c.name === customization.name);
+                let newCustomizations: CustomizationOption[];
+                if (exists) {
+                    newCustomizations = item.selectedCustomizations.filter(c => c.name !== customization.name);
+                } else {
+                    newCustomizations = [...item.selectedCustomizations, customization];
+                }
+                return {
+                    ...item,
+                    selectedCustomizations: newCustomizations,
+                    hasLabel: newCustomizations.length > 0,
+                };
+            })
+        );
+    };
 
     const clearCart = () => {
         setItems([]);
@@ -80,9 +113,9 @@ export function WholesaleCartProvider({ children }: { children: ReactNode }) {
         (total, item) => {
             let itemPrice = item.product.wholesale_price || 0;
             let itemTotal = itemPrice * item.quantity;
-            if (item.hasLabel && item.product.wholesale_label_price) {
-                itemTotal += (item.product.wholesale_label_price * item.quantity);
-            }
+            // Sum selected customizations
+            const customsTotal = item.selectedCustomizations.reduce((sum, c) => sum + (c.price || 0), 0);
+            itemTotal += customsTotal * item.quantity;
             return total + itemTotal;
         },
         0
@@ -98,6 +131,7 @@ export function WholesaleCartProvider({ children }: { children: ReactNode }) {
                 removeFromCart,
                 updateQuantity,
                 toggleLabel,
+                toggleCustomization,
                 clearCart,
                 cartTotal,
                 cartCount,

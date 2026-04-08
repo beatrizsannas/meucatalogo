@@ -22,6 +22,7 @@ type Product = {
     wholesale_min_qty: number | null;
     wholesale_label: boolean;
     wholesale_label_price: number | null;
+    wholesale_customizations: { name: string; price: number }[];
 };
 
 type Profile = {
@@ -175,21 +176,24 @@ export default function WholesaleProductPage() {
                         )}
                     </div>
 
-                    {/* Personalização */}
-                    {product.wholesale_label && (
-                        <div className="flex items-start gap-3 bg-amber-50/80 rounded-2xl p-4 border border-amber-200 mb-4">
-                            <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                <Tag size={15} className="text-amber-700" />
+                    {/* Personalizações */}
+                    {product.wholesale_customizations && product.wholesale_customizations.length > 0 && (
+                        <div className="bg-amber-50/80 rounded-2xl p-4 border border-amber-200 mb-4">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                    <Tag size={15} className="text-amber-700" />
+                                </div>
+                                <p className="font-semibold text-amber-900 text-sm">Personalizações disponíveis</p>
                             </div>
-                            <div>
-                                <p className="font-semibold text-amber-900 text-sm">Personalização com Etiqueta disponível</p>
-                                {product.wholesale_label_price && (
-                                    <p className="text-amber-700 text-sm font-bold mt-0.5">
-                                        + {formatPrice(product.wholesale_label_price)} por pedido
-                                    </p>
-                                )}
-                                <p className="text-amber-700/50 text-xs mt-1">Solicite ao entrar em contato</p>
+                            <div className="space-y-2">
+                                {product.wholesale_customizations.map((c, idx) => (
+                                    <div key={idx} className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-amber-100">
+                                        <span className="text-sm text-forest font-medium">{c.name}</span>
+                                        <span className="text-sm text-amber-700 font-bold">+ {formatPrice(c.price)} /unid</span>
+                                    </div>
+                                ))}
                             </div>
+                            <p className="text-amber-700/50 text-xs mt-2">Selecione no carrinho ao adicionar o produto</p>
                         </div>
                     )}
 
@@ -245,7 +249,7 @@ export default function WholesaleProductPage() {
                         ) : (
                             <button
                                 onClick={() => {
-                                    addToCart(product, product.wholesale_min_qty || 1, false);
+                                    addToCart(product, product.wholesale_min_qty || 1);
                                     setIsCartOpen(true);
                                 }}
                                 className="w-full flex items-center justify-center gap-2.5 bg-amber-400 text-amber-900 font-bold py-4 rounded-full text-base hover:bg-amber-500 active:scale-95 transition-all duration-200 shadow-sm border border-amber-500"

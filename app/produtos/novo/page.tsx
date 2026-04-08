@@ -4,14 +4,15 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from '@/app/components/Sidebar';
-import { ChevronLeft, Save, Image as ImageIcon, Tag, AlignLeft, Upload, Link2, Boxes, Package, ToggleLeft, ToggleRight } from 'lucide-react';
+import CustomSelect from '@/app/components/CustomSelect';
+import { ChevronLeft, Save, Image as ImageIcon, Tag, AlignLeft, Upload, Link2, Boxes, Package, ToggleLeft, ToggleRight, Plus, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { compressImage } from '@/lib/utils/image';
 
-const statuses = ['ativo', 'inativo', 'em-estoque', 'baixo-estoque', 'esgotado'];
+const statuses = ['em-estoque', 'esgotado'];
 const statusLabels: Record<string, string> = {
-    'ativo': 'Ativo', 'inativo': 'Inativo', 'em-estoque': 'Em Estoque',
-    'baixo-estoque': 'Baixo Estoque', 'esgotado': 'Esgotado'
+    'em-estoque': 'Em Estoque',
+    'esgotado': 'Esgotado',
 };
 
 const parseCurrency = (val: string) => {
@@ -38,8 +39,9 @@ export default function NovoProdutoPage() {
     const [formData, setFormData] = useState({
         name: '', price: '', category: '', status: 'em-estoque',
         image: '', description: '', tags: '',
-        wholesale_price: '', wholesale_min_qty: '', wholesale_label: false, wholesale_label_price: '',
+        wholesale_price: '', wholesale_min_qty: '', wholesale_has_customizations: false,
     });
+    const [customizations, setCustomizations] = useState<{ name: string; price: string }[]>([]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -68,10 +70,13 @@ export default function NovoProdutoPage() {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { setError('Não autenticado.'); setIsSaving(false); return; }
+        const parsedCustomizations = formData.wholesale_has_customizations
+            ? customizations.filter(c => c.name.trim()).map(c => ({ name: c.name.trim(), price: parseCurrency(c.price) || 0 }))
+            : [];
         const { error: err } = await supabase.from('products').insert({
             profile_id: user.id,
             name: formData.name,
-            price: parseFloat(formData.price) || 0,
+            price: parseCurrency(formData.price) || 0,
             category: formData.category,
             status: formData.status,
             image_url: formData.image,
@@ -79,8 +84,9 @@ export default function NovoProdutoPage() {
             tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
             wholesale_price: parseCurrency(formData.wholesale_price),
             wholesale_min_qty: formData.wholesale_min_qty ? parseInt(formData.wholesale_min_qty) : null,
-            wholesale_label: formData.wholesale_label,
-            wholesale_label_price: parseCurrency(formData.wholesale_label_price),
+            wholesale_label: formData.wholesale_has_customizations && parsedCustomizations.length > 0,
+            wholesale_label_price: parsedCustomizations.length > 0 ? parsedCustomizations[0].price : null,
+            wholesale_customizations: parsedCustomizations,
         });
         if (err) { setError(err.message); setIsSaving(false); return; }
         router.push('/produtos');
@@ -176,16 +182,11 @@ export default function NovoProdutoPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-forest mb-2">Preço (R$) *</label>
-                                    <input type="number" required min="0" step="0.01"
+                                    <input type="text" required
                                         value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                        onBlur={(e) => {
-                                            const v = parseFloat(e.target.value);
-                                            if (!isNaN(v)) setFormData(prev => ({ ...prev, price: v.toFixed(2) }));
-                                        }}
+                                        onChange={(e) => setFormData({ ...formData, price: maskCurrency(e.target.value) })}
                                         className="w-full px-4 py-3 rounded-xl bg-mint/30 border border-mint-dark text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all"
-                                        placeholder="0.00" />
-
+                                        placeholder="R$ 0,00" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-forest mb-2 flex items-center justify-between">
@@ -198,10 +199,12 @@ export default function NovoProdutoPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-forest mb-2">Status *</label>
-                                    <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl bg-mint/30 border border-mint-dark text-forest text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-lime cursor-pointer appearance-none transition-all">
-                                        {statuses.map(s => <option key={s} value={s}>{statusLabels[s]}</option>)}
-                                    </select>
+                                    <CustomSelect
+                                        value={formData.status}
+                                        onChange={(val) => setFormData({ ...formData, status: val })}
+                                        options={statuses.map(s => ({ value: s, label: statusLabels[s] }))}
+                                        className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-mint/30 border border-mint-dark text-forest text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-lime cursor-pointer transition-all text-left"
+                                    />
                                 </div>
                             </div>
 
@@ -259,27 +262,46 @@ export default function NovoProdutoPage() {
 
                                 <div className="mt-4 p-4 bg-amber-50/60 border border-amber-200 rounded-2xl">
                                     <div className="flex items-center justify-between mb-1">
-                                        <label className="text-sm font-semibold text-forest">Personalização com Etiqueta</label>
+                                        <label className="text-sm font-semibold text-forest">Personalização</label>
                                         <button
                                             type="button"
-                                            onClick={() => setFormData(prev => ({ ...prev, wholesale_label: !prev.wholesale_label }))}
+                                            onClick={() => {
+                                                const next = !formData.wholesale_has_customizations;
+                                                setFormData(prev => ({ ...prev, wholesale_has_customizations: next }));
+                                                if (next && customizations.length === 0) setCustomizations([{ name: '', price: '' }]);
+                                            }}
                                             className="flex items-center gap-1.5 transition-colors"
                                         >
-                                            {formData.wholesale_label
+                                            {formData.wholesale_has_customizations
                                                 ? <ToggleRight size={32} className="text-amber-500" />
                                                 : <ToggleLeft size={32} className="text-forest/30" />}
                                         </button>
                                     </div>
-                                    <p className="text-xs text-forest/40 mb-3">Ofereça personalização com etiqueta neste produto</p>
+                                    <p className="text-xs text-forest/40 mb-3">Ofereça opções de personalização neste produto</p>
 
-                                    {formData.wholesale_label && (
-                                        <div>
-                                            <label className="block text-sm font-semibold text-forest mb-2">Valor da Personalização</label>
-                                            <input type="text"
-                                                value={formData.wholesale_label_price}
-                                                onChange={e => setFormData({ ...formData, wholesale_label_price: maskCurrency(e.target.value) })}
-                                                className="w-full px-4 py-3 rounded-xl bg-white border border-amber-200 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
-                                                placeholder="R$ 0,00" />
+                                    {formData.wholesale_has_customizations && (
+                                        <div className="space-y-3">
+                                            {customizations.map((c, idx) => (
+                                                <div key={idx} className="flex items-center gap-2">
+                                                    <input type="text"
+                                                        value={c.name}
+                                                        onChange={e => { const arr = [...customizations]; arr[idx] = { ...arr[idx], name: e.target.value }; setCustomizations(arr); }}
+                                                        className="flex-1 px-4 py-3 rounded-xl bg-white border border-amber-200 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
+                                                        placeholder="Nome (ex: Etiqueta)" />
+                                                    <input type="text"
+                                                        value={c.price}
+                                                        onChange={e => { const arr = [...customizations]; arr[idx] = { ...arr[idx], price: maskCurrency(e.target.value) }; setCustomizations(arr); }}
+                                                        className="w-32 px-4 py-3 rounded-xl bg-white border border-amber-200 text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
+                                                        placeholder="R$ 0,00" />
+                                                    <button type="button" onClick={() => setCustomizations(customizations.filter((_, i) => i !== idx))} className="w-9 h-9 flex items-center justify-center rounded-full text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors flex-shrink-0">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button type="button" onClick={() => setCustomizations([...customizations, { name: '', price: '' }])}
+                                                className="flex items-center gap-2 text-amber-700 text-sm font-semibold hover:text-amber-900 transition-colors mt-1">
+                                                <Plus size={16} /> Adicionar Personalização
+                                            </button>
                                         </div>
                                     )}
                                 </div>

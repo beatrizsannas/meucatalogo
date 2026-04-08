@@ -51,7 +51,7 @@ export default function DashboardPage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
         const { count: total } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('profile_id', user.id);
-        const { count: active } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('profile_id', user.id).eq('status', 'ativo');
+        const { count: active } = await supabase.from('products').select('*', { count: 'exact', head: true }).eq('profile_id', user.id).eq('status', 'em-estoque');
         const { count: orders } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('profile_id', user.id);
         const { count: pending } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('profile_id', user.id).eq('status', 'pendente');
         setStats({ totalProducts: total || 0, activeProducts: active || 0, totalOrders: orders || 0, pendingOrders: pending || 0 });

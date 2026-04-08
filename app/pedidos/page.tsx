@@ -5,6 +5,7 @@ import Sidebar from '@/app/components/Sidebar';
 import { createClient } from '@/lib/supabase/client';
 import { Search, ChevronDown, SlidersHorizontal, Eye } from 'lucide-react';
 import Link from 'next/link';
+import CustomSelect from '@/app/components/CustomSelect';
 
 const statuses = ['Todos', 'Pendente', 'Confirmado', 'Em Preparação', 'Enviado', 'Cancelado'];
 const statusMap: Record<string, string> = {
@@ -27,17 +28,21 @@ function StatusSelect({ order, onUpdate }: { order: Order; onUpdate: (id: string
         'enviado': 'bg-purple-50 border-purple-200 text-purple-700',
         'cancelado': 'bg-red-50 border-red-200 text-red-600',
     };
+    const options = [
+        { value: 'pendente', label: 'Pendente' },
+        { value: 'confirmado', label: 'Confirmado' },
+        { value: 'em-preparacao', label: 'Em Preparação' },
+        { value: 'enviado', label: 'Enviado' },
+        { value: 'cancelado', label: 'Cancelado' }
+    ];
     return (
         <div className="relative inline-block w-40">
-            <select value={order.status} onChange={(e) => onUpdate(order.id, e.target.value)}
-                className={`appearance-none w-full px-3 py-1.5 rounded-full text-xs font-bold border cursor-pointer focus:outline-none transition-colors ${cls[order.status] || ''}`}>
-                <option value="pendente">Pendente</option>
-                <option value="confirmado">Confirmado</option>
-                <option value="em-preparacao">Em Preparação</option>
-                <option value="enviado">Enviado</option>
-                <option value="cancelado">Cancelado</option>
-            </select>
-            <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50" />
+            <CustomSelect
+                value={order.status}
+                onChange={(val) => onUpdate(order.id, val)}
+                options={options}
+                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-full text-xs font-bold border focus:outline-none transition-colors ${cls[order.status] || ''}`}
+            />
         </div>
     );
 }
@@ -98,17 +103,15 @@ export default function PedidosPage() {
                                 placeholder="Buscar por código ou cliente..."
                                 className="w-full pl-10 pr-4 py-2.5 rounded-full bg-mint border border-mint-dark text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all" />
                         </div>
-                        <div className="relative">
-                            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                                className="appearance-none pl-4 pr-9 py-2.5 rounded-full bg-mint border border-mint-dark text-forest text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lime cursor-pointer">
-                                {statuses.map(s => <option key={s}>Status: {s}</option>)}
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-forest/40 pointer-events-none" size={14} />
-                        </div>
+                        <CustomSelect
+                            value={statusFilter}
+                            onChange={(val) => { setStatusFilter(val); setPage(1); }}
+                            options={statuses.map(s => ({ value: s, label: `Status: ${s}` }))}
+                        />
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-card border border-mint-dark overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-card border border-mint-dark">
                     {loading ? (
                         <div className="py-16 text-center text-forest/40 text-sm">Carregando pedidos...</div>
                     ) : (

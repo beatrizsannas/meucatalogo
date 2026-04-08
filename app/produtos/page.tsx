@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/app/components/Sidebar';
+import CustomSelect from '@/app/components/CustomSelect';
 import Badge from '@/app/components/Badge';
 import { createClient } from '@/lib/supabase/client';
 import {
     Plus, Share2, Search, ChevronDown, Pencil, Trash2, AlertTriangle, Boxes, X
 } from 'lucide-react';
 
-const categories = ['Todos', 'Móveis', 'Iluminação', 'Decoração', 'Outros'];
-const statuses = ['Todos', 'ativo', 'inativo', 'em-estoque', 'baixo-estoque', 'esgotado'];
+const statuses = ['Todos', 'em-estoque', 'esgotado'];
 const ITEMS_PER_PAGE = 10;
 
 type Product = {
@@ -31,6 +31,7 @@ export default function ProdutosPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [category, setCategory] = useState('Todos');
+    const [categories, setCategories] = useState<string[]>(['Todos']);
     const [status, setStatus] = useState('Todos');
     const [page, setPage] = useState(1);
     const [showToast, setShowToast] = useState('');
@@ -61,6 +62,9 @@ export default function ProdutosPage() {
 
         const { data } = await supabase.from('products').select('*').eq('profile_id', user.id).order('created_at', { ascending: false });
         setProducts(data || []);
+        // Build dynamic category list from the user's products
+        const uniqueCats = Array.from(new Set((data || []).map((p: Product) => p.category).filter(Boolean)));
+        setCategories(['Todos', ...uniqueCats]);
         setLoading(false);
     }
 
@@ -132,7 +136,12 @@ export default function ProdutosPage() {
     };
 
     const filtered = products.filter((p) => {
-        const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.category.toLowerCase().includes(search.toLowerCase());
+        const q = search.toLowerCase();
+        const shortCode = p.id.substring(0, 8).toUpperCase();
+        const matchSearch =
+            p.name.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            shortCode.includes(q.toUpperCase());
         const matchCategory = category === 'Todos' || p.category === category;
         const matchStatus = status === 'Todos' || p.status === status;
         return matchSearch && matchCategory && matchStatus;
@@ -179,23 +188,23 @@ export default function ProdutosPage() {
                         <div className="relative flex-1 min-w-52">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-forest/30" size={16} />
                             <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                                placeholder="Buscar por nome ou categoria..."
+                                placeholder="Buscar por nome, categoria ou código..."
                                 className="w-full pl-10 pr-4 py-2.5 rounded-full bg-mint border border-mint-dark text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all" />
                         </div>
-                        <div className="relative">
-                            <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(1); }}
-                                className="appearance-none pl-4 pr-9 py-2.5 rounded-full bg-mint border border-mint-dark text-forest text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lime cursor-pointer">
-                                {categories.map(c => <option key={c}>Categoria: {c}</option>)}
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-forest/40 pointer-events-none" size={14} />
-                        </div>
-                        <div className="relative">
-                            <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-                                className="appearance-none pl-4 pr-9 py-2.5 rounded-full bg-mint border border-mint-dark text-forest text-sm font-medium focus:outline-none focus:ring-2 focus:ring-lime cursor-pointer">
-                                {statuses.map(s => <option key={s} value={s}>Status: {s === 'Todos' ? 'Todos' : s}</option>)}
-                            </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-forest/40 pointer-events-none" size={14} />
-                        </div>
+                        <CustomSelect
+                            value={category}
+                            onChange={(val) => { setCategory(val); setPage(1); }}
+                            options={categories.map(c => ({ value: c, label: `Categoria: ${c}` }))}
+                        />
+                        <CustomSelect
+                            value={status}
+                            onChange={(val) => { setStatus(val); setPage(1); }}
+                            options={[
+                                { value: 'Todos', label: 'Status: Todos' },
+                                { value: 'em-estoque', label: 'Em Estoque' },
+                                { value: 'esgotado', label: 'Esgotado' }
+                            ]}
+                        />
                     </div>
                 </div>
 

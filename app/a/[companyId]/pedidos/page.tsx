@@ -185,9 +185,18 @@ export default function PedidosClientePage() {
                                                                         <span className="text-forest text-[11px]"><span className="font-extrabold text-amber-600 mr-1">{item.quantity}x</span></span>
                                                                         <span className="font-extrabold text-forest text-xs">{formatPrice(item.price * item.quantity)}</span>
                                                                     </div>
-                                                                    {item.wholesale_label && item.wholesale_label_price && (
+                                                                    {item.customizations && item.customizations.length > 0 ? (
+                                                                        <div className="mt-1 space-y-0.5">
+                                                                            {item.customizations.map((c: any, ci: number) => (
+                                                                                <div key={ci} className="flex items-center justify-between text-[10px] text-amber-700 bg-amber-50/50 px-1.5 py-0.5 rounded border border-amber-100/50">
+                                                                                    <span className="flex items-center gap-1 font-medium"><Tag size={10}/> {c.name} p/ unidade</span>
+                                                                                    <span className="font-bold">+{formatPrice((c.price || 0) * item.quantity)}</span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    ) : item.wholesale_label && item.wholesale_label_price && (
                                                                         <div className="flex items-center justify-between text-[10px] text-amber-700 mt-1 bg-amber-50/50 px-1.5 py-0.5 rounded border border-amber-100/50">
-                                                                            <span className="flex items-center gap-1 font-medium"><Tag size={10}/> Etiqueta p/ unidade</span>
+                                                                            <span className="flex items-center gap-1 font-medium"><Tag size={10}/> Personalização p/ unidade</span>
                                                                             <span className="font-bold">+{formatPrice(item.wholesale_label_price * item.quantity)}</span>
                                                                         </div>
                                                                     )}

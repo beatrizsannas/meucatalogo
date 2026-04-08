@@ -11,7 +11,7 @@ type Props = {
 };
 
 export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
-    const { items, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, toggleLabel, clearCart, cartTotal, cartCount } = useWholesaleCart();
+    const { items, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, toggleCustomization, clearCart, cartTotal, cartCount } = useWholesaleCart();
 
     const [mounted, setMounted] = useState(false);
     const [view, setView] = useState<'cart' | 'form' | 'success'>('cart');
@@ -75,6 +75,14 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
     const formatPrice = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     const handleCheckoutStep1 = () => { if (items.length === 0) return; setView('form'); };
 
+    const getItemCustomizationsTotal = (item: typeof items[0]) => {
+        return item.selectedCustomizations.reduce((sum, c) => sum + (c.price || 0), 0) * item.quantity;
+    };
+
+    const getItemTotal = (item: typeof items[0]) => {
+        return (item.product.wholesale_price * item.quantity) + getItemCustomizationsTotal(item);
+    };
+
     const handleCheckoutSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setFormError('');
@@ -93,12 +101,14 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
         if (customerAddress) message += `Endereço: ${customerAddress}\n`;
         message += `\n*Itens do Pedido:*\n`;
         items.forEach((item, index) => {
-            const labelPriceText = (item.hasLabel && item.product.wholesale_label_price) ? ` (Etiqueta: +${formatPrice(item.product.wholesale_label_price * item.quantity)})` : '';
-            message += `${index + 1}. *${item.product.name}*\n   Qtd: ${item.quantity} x ${formatPrice(item.product.wholesale_price)}${labelPriceText}\n   Subtotal: ${formatPrice((item.product.wholesale_price * item.quantity) + (item.hasLabel ? (item.product.wholesale_label_price! * item.quantity) : 0))}\n\n`;
+            const customsText = item.selectedCustomizations.length > 0
+                ? ` (${item.selectedCustomizations.map(c => `${c.name}: +${formatPrice(c.price * item.quantity)}`).join(', ')})`
+                : '';
+            message += `${index + 1}. *${item.product.name}*\n   Qtd: ${item.quantity} x ${formatPrice(item.product.wholesale_price)}${customsText}\n   Subtotal: ${formatPrice(getItemTotal(item))}\n\n`;
         });
         message += `*Total do Pedido: ${formatPrice(cartTotal)}*\n\nAguardando confirmação e cálculo do frete!`;
 
-        // Save to Supabase (We can reuse 'orders' table, maybe storing the type)
+        // Save to Supabase
         if (profileId) {
             const supabase = createClient();
             await supabase.from('orders').insert({
@@ -114,8 +124,9 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                     image_url: item.product.image_url,
                     quantity: item.quantity,
                     price: item.product.wholesale_price,
-                    wholesale_label: item.hasLabel,
-                    wholesale_label_price: item.product.wholesale_label_price
+                    wholesale_label: item.selectedCustomizations.length > 0,
+                    wholesale_label_price: item.selectedCustomizations.length > 0 ? item.selectedCustomizations[0].price : null,
+                    customizations: item.selectedCustomizations,
                 })),
                 total: cartTotal,
                 status: 'pendente',
@@ -141,6 +152,8 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
         clearCart();
         setIsCartOpen(false);
     };
+
+    const totalCustomizations = items.reduce((sum, item) => sum + getItemCustomizationsTotal(item), 0);
 
     return (
         <>
@@ -212,12 +225,16 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                                         <div className="flex-1 text-forest pr-2">
                                             <span className="font-bold text-amber-700 mr-2">{item.quantity}x</span>
                                             {item.product.name}
-                                            {item.hasLabel && (
-                                                <p className="text-xs text-amber-600 mt-0.5 ml-6">+ Personalização (Etiqueta) {formatPrice((item.product.wholesale_label_price || 0) * item.quantity)}</p>
+                                            {item.selectedCustomizations && item.selectedCustomizations.length > 0 && (
+                                                <div className="ml-6 space-y-0.5">
+                                                    {item.selectedCustomizations.map((c: any, ci: number) => (
+                                                        <p key={ci} className="text-xs text-amber-600 mt-0.5">+ {c.name} {formatPrice(c.price * item.quantity)}</p>
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
                                         <div className="font-bold text-forest text-right">
-                                            {formatPrice((item.product.wholesale_price * item.quantity) + (item.hasLabel ? ((item.product.wholesale_label_price || 0) * item.quantity) : 0))}
+                                            {formatPrice(getItemTotal(item))}
                                         </div>
                                     </div>
                                 ))}
@@ -353,6 +370,7 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                                     {items.map((item) => {
                                         const minQty = item.product.wholesale_min_qty || 1;
                                         const isMinQty = item.quantity <= minQty;
+                                        const customizations: { name: string; price: number }[] = item.product.wholesale_customizations || [];
 
                                         return (
                                             <div key={item.product.id} className="flex flex-col gap-2 bg-white p-3.5 rounded-2xl border border-amber-200 shadow-sm relative">
@@ -405,25 +423,34 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                                                     <X size={14} />
                                                 </button>
 
-                                                {/* Personalização Box */}
-                                                {item.product.wholesale_label && (
-                                                    <div className={`mt-1 flex items-center justify-between gap-2 p-2 rounded-xl border transition-colors cursor-pointer ${item.hasLabel ? 'bg-amber-100/50 border-amber-300' : 'bg-gray-50 border-gray-200 hover:bg-amber-50 hover:border-amber-200'}`} onClick={() => toggleLabel(item.product.id)}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Tag size={13} className={item.hasLabel ? 'text-amber-700' : 'text-gray-400'} />
-                                                            <span className={`text-[11px] font-semibold ${item.hasLabel ? 'text-amber-900' : 'text-gray-500'}`}>
-                                                                Adicionar Personalização (Etiqueta)
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {item.product.wholesale_label_price && (
-                                                                <span className={`text-[11px] font-bold ${item.hasLabel ? 'text-amber-700' : 'text-gray-500'}`}>
-                                                                    +{formatPrice(item.product.wholesale_label_price)}/unid
-                                                                </span>
-                                                            )}
-                                                            <div className={`w-4 h-4 rounded border flex items-center justify-center ${item.hasLabel ? 'border-amber-500 bg-amber-400 text-white' : 'border-gray-300 bg-white'}`}>
-                                                                {item.hasLabel && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3"><path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                                                            </div>
-                                                        </div>
+                                                {/* Personalização Boxes - one per customization option */}
+                                                {customizations.length > 0 && (
+                                                    <div className="space-y-1.5 mt-1">
+                                                        {customizations.map((cust: { name: string; price: number }, ci: number) => {
+                                                            const isSelected = item.selectedCustomizations.some(c => c.name === cust.name);
+                                                            return (
+                                                                <div
+                                                                    key={ci}
+                                                                    className={`flex items-center justify-between gap-2 p-2 rounded-xl border transition-colors cursor-pointer ${isSelected ? 'bg-amber-100/50 border-amber-300' : 'bg-gray-50 border-gray-200 hover:bg-amber-50 hover:border-amber-200'}`}
+                                                                    onClick={() => toggleCustomization(item.product.id, cust)}
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Tag size={13} className={isSelected ? 'text-amber-700' : 'text-gray-400'} />
+                                                                        <span className={`text-[11px] font-semibold ${isSelected ? 'text-amber-900' : 'text-gray-500'}`}>
+                                                                            {cust.name}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className={`text-[11px] font-bold ${isSelected ? 'text-amber-700' : 'text-gray-500'}`}>
+                                                                            +{formatPrice(cust.price)}/unid
+                                                                        </span>
+                                                                        <div className={`w-4 h-4 rounded border flex items-center justify-center ${isSelected ? 'border-amber-500 bg-amber-400 text-white' : 'border-gray-300 bg-white'}`}>
+                                                                            {isSelected && <svg viewBox="0 0 14 14" fill="none" className="w-3 h-3"><path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 )}
                                                 {item.quantity === minQty && (
@@ -441,12 +468,12 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                             <div className="p-5 bg-white border-t border-amber-200 shadow-up">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-forest/60 text-sm font-medium">Subtotal Itens</span>
-                                    <span className="text-forest font-bold">{formatPrice(cartTotal - items.filter(i => i.hasLabel).reduce((sum, i) => sum + ((i.product.wholesale_label_price || 0) * i.quantity), 0))}</span>
+                                    <span className="text-forest font-bold">{formatPrice(cartTotal - totalCustomizations)}</span>
                                 </div>
-                                {items.filter(i => i.hasLabel).length > 0 && (
+                                {totalCustomizations > 0 && (
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-amber-700 text-sm font-medium flex items-center gap-1.5"><Tag size={12}/> Personalização</span>
-                                        <span className="text-amber-700 font-bold">{formatPrice(items.filter(i => i.hasLabel).reduce((sum, i) => sum + ((i.product.wholesale_label_price || 0) * i.quantity), 0))}</span>
+                                        <span className="text-amber-700 text-sm font-medium flex items-center gap-1.5"><Tag size={12}/> Personalizações</span>
+                                        <span className="text-amber-700 font-bold">{formatPrice(totalCustomizations)}</span>
                                     </div>
                                 )}
                                 <div className="flex items-center justify-between mb-4">

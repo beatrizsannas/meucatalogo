@@ -323,7 +323,7 @@ function WholesaleProductCard({ product, formatPrice, companyId }: {
                         <button
                             onClick={(e) => {
                                 e.preventDefault();
-                                addToCart(product, product.wholesale_min_qty || 1, false);
+                                addToCart(product, product.wholesale_min_qty || 1);
                             }}
                             className="w-full mt-1 py-2 rounded-xl bg-amber-400 text-amber-900 font-bold text-sm hover:bg-amber-500 transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-amber-500"
                         >

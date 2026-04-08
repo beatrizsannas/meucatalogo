@@ -1,26 +1,11 @@
 interface BadgeProps {
-    status: 'ativo' | 'inativo' | 'em-estoque' | 'baixo-estoque' | 'esgotado';
+    status: 'em-estoque' | 'esgotado' | string;
 }
 
-const statusConfig: Record<
-    BadgeProps['status'],
-    { label: string; className: string }
-> = {
-    'ativo': {
-        label: 'Ativo',
-        className: 'bg-green-100 text-green-800',
-    },
-    'inativo': {
-        label: 'Inativo',
-        className: 'bg-gray-100 text-gray-600',
-    },
+const statusConfig: Record<string, { label: string; className: string }> = {
     'em-estoque': {
         label: 'Em Estoque',
         className: 'bg-lime/60 text-forest font-semibold',
-    },
-    'baixo-estoque': {
-        label: 'Baixo Estoque',
-        className: 'bg-yellow-100 text-yellow-800',
     },
     'esgotado': {
         label: 'Esgotado',
@@ -29,10 +14,10 @@ const statusConfig: Record<
 };
 
 export default function Badge({ status }: BadgeProps) {
-    const { label, className } = statusConfig[status];
+    const config = statusConfig[status] ?? { label: status, className: 'bg-gray-100 text-gray-600' };
     return (
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${className}`}>
-            {label}
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${config.className}`}>
+            {config.label}
         </span>
     );
 }
