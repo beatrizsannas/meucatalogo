@@ -3,7 +3,7 @@ import { Providers } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: 'Meu Catálogo',
+    title: 'A vitrine do seu negócio',
     description: 'Gerencie e compartilhe seu catálogo de produtos com facilidade.',
 };
 

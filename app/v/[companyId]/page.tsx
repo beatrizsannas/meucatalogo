@@ -193,7 +193,7 @@ export default function CatalogPublicPage() {
                                     Fale Conosco
                                 </a>
                                 <Link
-                                    href={`/c/${companyId}/pedidos`}
+                                    href={`/v/${companyId}/pedidos`}
                                     className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-mint/60 border border-mint-dark text-forest font-bold hover:bg-mint transition-colors shadow-sm active:scale-95 text-sm"
                                 >
                                     <PackageSearch size={16} />

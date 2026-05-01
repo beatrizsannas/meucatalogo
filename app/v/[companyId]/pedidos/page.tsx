@@ -87,7 +87,7 @@ export default function PedidosClientePage() {
         <div className="min-h-screen bg-mint/30 px-4 py-10">
             <div className="max-w-xl mx-auto">
                 {/* Back link */}
-                <Link href={`/c/${companyId}`} className="inline-flex items-center gap-2 text-forest/60 hover:text-forest text-sm font-semibold mb-6 transition-colors">
+                <Link href={`/v/${companyId}`} className="inline-flex items-center gap-2 text-forest/60 hover:text-forest text-sm font-semibold mb-6 transition-colors">
                     <ChevronLeft size={18} /> Voltar ao catálogo
                 </Link>
 

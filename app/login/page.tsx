@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Leaf } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
@@ -46,9 +46,9 @@ export default function LoginPage() {
                     <div className="px-8 pt-10 pb-10">
                         <div className="flex flex-col items-center mb-8">
                             <div className="w-14 h-14 rounded-2xl bg-lime flex items-center justify-center mb-3 shadow-sm">
-                                <Leaf className="w-7 h-7 text-forest" />
+                                <span className="text-forest font-bold text-2xl" style={{ fontFamily: "Georgia, serif" }}>V</span>
                             </div>
-                            <p className="font-bold text-forest text-lg tracking-tight">Meu Catálogo</p>
+                            <p className="font-bold text-forest text-lg tracking-tight">A vitrine do seu negócio</p>
                             <h1 className="text-2xl font-bold text-forest mt-4 text-center leading-snug">
                                 Acesse sua conta
                             </h1>
@@ -93,6 +93,11 @@ export default function LoginPage() {
                                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
                                 </div>
+                            </div>
+                            <div className="flex justify-end mt-1.5">
+                                <Link href="/esqueci-senha" className="text-xs text-forest/50 hover:text-forest transition-colors">
+                                    Esqueci minha senha
+                                </Link>
                             </div>
 
                             {errorMsg && (

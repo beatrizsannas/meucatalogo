@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
-import WholesaleLayoutClient from './wholesale-layout-client';
 
 type Props = {
     params: Promise<{ companyId: string }>;
@@ -20,15 +19,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const storeName = profile?.store_name ?? 'Catálogo';
     const description =
         profile?.description ||
-        `Confira o catálogo atacado de ${storeName} e faça seu pedido com facilidade.`;
+        `Confira os produtos de ${storeName} e faça seu pedido online com facilidade.`;
     const logo = profile?.logo_url ?? null;
-    const url = `https://vitrinedaslojas.com.br/a/${companyId}`;
+    const url = `https://vitrinedaslojas.com.br/v/${companyId}`;
 
     return {
-        title: `${storeName} — Catálogo Atacado`,
+        title: `${storeName} — Catálogo Varejo`,
         description,
         openGraph: {
-            title: `${storeName} — Catálogo Atacado`,
+            title: `${storeName} — Catálogo Varejo`,
             description,
             url,
             siteName: 'A vitrine do seu negócio',
@@ -37,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         },
         twitter: {
             card: logo ? 'summary_large_image' : 'summary',
-            title: `${storeName} — Catálogo Atacado`,
+            title: `${storeName} — Catálogo Varejo`,
             description,
             ...(logo ? { images: [logo] } : {}),
         },
@@ -45,6 +44,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
-export default function WholesaleLayout({ children }: { children: React.ReactNode }) {
-    return <WholesaleLayoutClient>{children}</WholesaleLayoutClient>;
+export default function CatalogLayout({ children }: { children: React.ReactNode }) {
+    return <>{children}</>;
 }

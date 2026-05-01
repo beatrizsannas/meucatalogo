@@ -70,7 +70,7 @@ export default function ProdutosPage() {
 
     const handleCopyLink = async () => {
         if (!profile) return;
-        const url = `${window.location.origin}/c/${profile.slug}`;
+        const url = `${window.location.origin}/v/${profile.slug}`;
         await navigator.clipboard.writeText(url);
         setShowToast('Link copiado!');
         setTimeout(() => setShowToast(''), 3000);
@@ -330,7 +330,7 @@ export default function ProdutosPage() {
                             <label className="block text-xs font-bold text-forest mb-2">Link do Catálogo Atacado</label>
                             <div className="flex items-center bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
                                 <span className="pl-4 pr-2 py-3 text-xs text-amber-700 select-none bg-amber-100 border-r border-amber-200 font-mono whitespace-nowrap">
-                                    meucatalogo.com/a/
+                                    vitrinedaslojas.com.br/a/
                                 </span>
                                 <span className="px-3 py-3 text-sm text-amber-900 font-semibold truncate">{profile.slug}</span>
                             </div>
@@ -382,7 +382,7 @@ export default function ProdutosPage() {
                             <label className="block text-xs font-bold text-forest mb-2">Link do Catálogo Varejo</label>
                             <div className="flex items-center bg-mint/30 border border-mint-dark rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-lime transition-shadow">
                                 <span className="pl-4 pr-2 py-3 text-xs text-forest/50 select-none bg-mint-dark/10 border-r border-mint-dark font-mono whitespace-nowrap">
-                                    meucatalogo.com/c/
+                                    vitrinedaslojas.com.br/v/
                                 </span>
                                 <input
                                     type="text"
@@ -414,7 +414,7 @@ export default function ProdutosPage() {
                                 Copiar Link
                             </button>
                             <a
-                                href={`/c/${profile.slug}`}
+                                href={`/v/${profile.slug}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-full py-3.5 rounded-full border border-mint-dark text-forest font-semibold text-sm hover:bg-mint transition-colors text-center"

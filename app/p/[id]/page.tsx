@@ -84,7 +84,7 @@ function ProductPage() {
 
     const status = statusLabels[product.status] ?? { label: product.status, color: 'bg-gray-100 text-gray-600' };
     const isUnavailable = product.status === 'esgotado' || product.status === 'inativo';
-    const backUrl = profile?.slug ? `/c/${profile.slug}` : '/';
+    const backUrl = profile?.slug ? `/v/${profile.slug}` : '/';
 
     return (
         <div className="min-h-screen bg-mint pb-28">
