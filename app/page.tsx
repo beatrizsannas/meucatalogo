@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, ShoppingBag, MessageCircle, Zap, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ShoppingBag, MessageCircle, Zap, ShieldCheck, Star } from 'lucide-react';
 
 export default function LandingPage() {
     return (
@@ -134,6 +134,52 @@ export default function LandingPage() {
                         <div className="w-full sm:w-1/3 aspect-square border-2 border-lime flex items-center justify-center p-8 brutal-shadow relative bg-forest">
                              <div className="absolute inset-0 bg-lime/10 animate-pulse" />
                              <span className="text-8xl font-black text-lime">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* --- FEEDBACKS --- */}
+            <section className="relative z-10 px-4 py-32 max-w-7xl mx-auto w-full border-t-2 border-mint-dark/10">
+                <div className="mb-20 text-center">
+                    <h2 className="text-4xl sm:text-6xl font-black text-white uppercase tracking-tighter leading-none mb-6">
+                        RESULTADOS <span className="text-lime">REAIS.</span>
+                    </h2>
+                    <p className="text-xl text-mint/50 font-bold max-w-2xl mx-auto">O que dizem os lojistas que já aceleraram suas vendas.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {/* Feedback 1 */}
+                    <div className="border-4 border-mint-dark/20 p-8 flex flex-col justify-between hover:border-lime transition-colors brutal-shadow bg-forest">
+                        <div className="flex gap-1 mb-6 text-lime">
+                            {[...Array(5)].map((_, i) => <Star key={i} size={24} fill="currentColor" />)}
+                        </div>
+                        <p className="text-xl text-white font-bold mb-8">"Antes eu perdia horas montando pedido pelo WhatsApp. Agora os clientes mandam tudo pronto. Mudou o jogo."</p>
+                        <div>
+                            <p className="text-lime font-black uppercase tracking-tighter">MARIANA S.</p>
+                            <p className="text-mint/50 text-sm font-bold uppercase tracking-widest">Loja de Roupas</p>
+                        </div>
+                    </div>
+                    {/* Feedback 2 */}
+                    <div className="bg-lime border-4 border-lime p-8 flex flex-col justify-between brutal-shadow transform hover:-translate-y-2 transition-transform">
+                        <div className="flex gap-1 mb-6 text-forest">
+                            {[...Array(5)].map((_, i) => <Star key={i} size={24} fill="currentColor" />)}
+                        </div>
+                        <p className="text-xl text-forest font-bold mb-8">"A divisão entre atacado e varejo é genial. Escondo os preços de revenda sem precisar de dois catálogos diferentes."</p>
+                        <div>
+                            <p className="text-forest font-black uppercase tracking-tighter">ROBERTO M.</p>
+                            <p className="text-forest/70 text-sm font-bold uppercase tracking-widest">Distribuidora</p>
+                        </div>
+                    </div>
+                    {/* Feedback 3 */}
+                    <div className="border-4 border-mint-dark/20 p-8 flex flex-col justify-between hover:border-lime transition-colors brutal-shadow bg-forest">
+                        <div className="flex gap-1 mb-6 text-lime">
+                            {[...Array(5)].map((_, i) => <Star key={i} size={24} fill="currentColor" />)}
+                        </div>
+                        <p className="text-xl text-white font-bold mb-8">"O fato de não cobrarem taxa por venda foi o que mais me chamou atenção. O lucro finalmente fica todo comigo."</p>
+                        <div>
+                            <p className="text-lime font-black uppercase tracking-tighter">CAMILA F.</p>
+                            <p className="text-mint/50 text-sm font-bold uppercase tracking-widest">Cosméticos</p>
                         </div>
                     </div>
                 </div>
