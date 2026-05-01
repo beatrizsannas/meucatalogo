@@ -49,7 +49,8 @@ export default function LoginPage() {
                                 <span className="text-forest font-bold text-2xl" style={{ fontFamily: "Georgia, serif" }}>V</span>
                             </div>
                             <p className="font-bold text-forest text-lg tracking-tight">A vitrine do seu negócio</p>
-                            <h1 className="text-2xl font-bold text-forest mt-4 text-center leading-snug">
+                            <div className="w-12 h-px bg-mint-dark my-4" />
+                            <h1 className="text-2xl font-bold text-forest mt-2 text-center leading-snug">
                                 Acesse sua conta
                             </h1>
                             <p className="text-forest/50 text-sm mt-1.5 text-center">
