@@ -25,6 +25,15 @@ module.exports = {
                 soft: '0 2px 15px rgba(15, 41, 38, 0.08)',
                 card: '0 4px 24px rgba(15, 41, 38, 0.06)',
             },
+            keyframes: {
+                'slide-in': {
+                    '0%': { transform: 'translateX(100%)' },
+                    '100%': { transform: 'translateX(0)' },
+                },
+            },
+            animation: {
+                'slide-in': 'slide-in 0.25s cubic-bezier(0.32, 0.72, 0, 1)',
+            },
         },
     },
     plugins: [],

@@ -9,6 +9,8 @@ import {
     LogOut,
     BookOpen,
     Leaf,
+    ReceiptText,
+    Users,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -16,6 +18,8 @@ const navItems = [
     { href: '/dashboard', label: 'Visão Geral', icon: LayoutDashboard },
     { href: '/produtos', label: 'Meus Produtos', icon: ShoppingBag },
     { href: '/pedidos', label: 'Pedidos', icon: BookOpen },
+    { href: '/clientes', label: 'Clientes', icon: Users },
+    { href: '/pdv', label: 'PDV', icon: ReceiptText },
     { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
