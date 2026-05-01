@@ -153,7 +153,7 @@ export default function CartDrawer({ profileId, whatsapp, brandColor }: Props) {
                     }`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-mint-dark bg-white">
+                <div className="flex items-center justify-between p-6 border-b border-mint-dark bg-white shrink-0">
                     <div className="flex items-center gap-3">
                         {view === 'form' ? (
                             <button
@@ -191,7 +191,7 @@ export default function CartDrawer({ profileId, whatsapp, brandColor }: Props) {
                 {/* Body Content */}
                 {view === 'success' && lastOrderDetails && (
                     // Success View
-                    <div className="flex-1 overflow-y-auto p-6 bg-white flex flex-col items-center">
+                    <div className="flex-1 overflow-y-auto p-6 bg-white flex flex-col items-center min-h-0">
                         <div className="w-16 h-16 bg-lime/20 rounded-full flex items-center justify-center mb-4 mt-2">
                             <Send size={28} className="text-lime-dark ml-1" />
                         </div>
@@ -243,7 +243,7 @@ export default function CartDrawer({ profileId, whatsapp, brandColor }: Props) {
 
                 {view === 'form' && (
                     // Customer Form View
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto min-h-0">
                         <form onSubmit={handleCheckoutSubmit} className="p-6 space-y-4">
                             <p className="text-forest/60 text-sm mb-6">
                                 Precisamos de alguns dados para registrar e facilitar a entrega do seu pedido.
@@ -335,7 +335,7 @@ export default function CartDrawer({ profileId, whatsapp, brandColor }: Props) {
                     // Normal Cart View
                     <>
                         {/* Body (Items) */}
-                        <div className="flex-1 overflow-y-auto p-6 bg-mint/10">
+                        <div className="flex-1 overflow-y-auto p-6 bg-mint/10 min-h-0">
                             {items.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-forest/40 space-y-4">
                                     <ShoppingCart size={48} className="opacity-20" />
@@ -399,7 +399,7 @@ export default function CartDrawer({ profileId, whatsapp, brandColor }: Props) {
 
                         {/* Footer (Total & Checkout) */}
                         {items.length > 0 && (
-                            <div className="p-6 bg-white border-t border-mint-dark shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+                            <div className="p-6 bg-white border-t border-mint-dark shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] shrink-0">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-forest/60 text-sm font-medium">Subtotal</span>
                                     <span className="text-forest font-bold">{formatPrice(cartTotal)}</span>

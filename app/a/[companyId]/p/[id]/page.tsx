@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Leaf, MessageCircle, ChevronLeft, Tag, Boxes, ShoppingCart, Check } from 'lucide-react';
+import { Leaf, MessageCircle, ChevronLeft, Tag, Boxes, ShoppingCart, Check, Minus, Plus } from 'lucide-react';
 import { useWholesaleCart } from '@/app/context/WholesaleCartContext';
 import WholesaleCartDrawer from '@/app/components/WholesaleCartDrawer';
 
@@ -52,6 +52,7 @@ export default function WholesaleProductPage() {
     const [product, setProduct] = useState<Product | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [quantity, setQuantity] = useState(1);
 
     // Customization selection state
     const [customizationChoice, setCustomizationChoice] = useState<'none' | 'with' | null>(null);
@@ -67,6 +68,7 @@ export default function WholesaleProductPage() {
         const { data: prod } = await supabase.from('products').select('*').eq('id', id).single();
         if (!prod) { setLoading(false); return; }
         setProduct(prod);
+        setQuantity(prod.wholesale_min_qty || 1);
 
         const { data: prof } = await supabase
             .from('profiles')
@@ -296,36 +298,54 @@ export default function WholesaleProductPage() {
             {/* Sticky CTA */}
             <div className="fixed bottom-0 left-0 right-0 z-50">
                 <div className="bg-white/90 backdrop-blur-md border-t border-amber-200 px-4 py-4">
-                    <div className="max-w-2xl mx-auto">
+                    <div className="max-w-2xl mx-auto flex items-center gap-3">
                         {isUnavailable ? (
-                            <button disabled className="w-full flex items-center justify-center gap-2.5 bg-gray-100 text-gray-400 font-bold py-4 rounded-full text-base cursor-not-allowed">
+                            <button disabled className="w-full flex items-center justify-center gap-2.5 bg-gray-100 text-gray-400 font-bold py-4 rounded-full text-base cursor-not-allowed h-[56px]">
                                 Produto Indisponível
                             </button>
                         ) : (
-                            <button
-                                onClick={() => {
-                                    const hasCustomizations = product.wholesale_customizations && product.wholesale_customizations.length > 0;
-                                    if (hasCustomizations && customizationChoice === null) {
-                                        setShowValidationError(true);
-                                        // Scroll to customization section
-                                        document.querySelector('[data-customization-section]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                        return;
-                                    }
-                                    // Build the product with selected customizations embedded
-                                    const enrichedProduct = {
-                                        ...product,
-                                        wholesale_customizations: customizationChoice === 'with'
-                                            ? product.wholesale_customizations.filter((_: any, i: number) => selectedCustomizations.has(i))
-                                            : [],
-                                    };
-                                    addToCart(enrichedProduct, product.wholesale_min_qty || 1);
-                                    setIsCartOpen(true);
-                                }}
-                                className="w-full flex items-center justify-center gap-2.5 bg-amber-400 text-amber-900 font-bold py-4 rounded-full text-base hover:bg-amber-500 active:scale-95 transition-all duration-200 shadow-sm border border-amber-500"
-                            >
-                                <ShoppingCart size={20} />
-                                Adicionar ao Carrinho
-                            </button>
+                            <>
+                                <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-full px-2 w-32 h-[56px] flex-shrink-0">
+                                    <button 
+                                        onClick={() => setQuantity(q => Math.max(product.wholesale_min_qty || 1, q - 1))} 
+                                        className="p-2 text-amber-800/60 hover:text-amber-900 transition-colors rounded-full"
+                                    >
+                                        <Minus size={20} />
+                                    </button>
+                                    <span className="font-bold text-amber-900 text-lg w-8 text-center">{quantity}</span>
+                                    <button 
+                                        onClick={() => setQuantity(q => q + 1)} 
+                                        className="p-2 text-amber-800/60 hover:text-amber-900 transition-colors rounded-full"
+                                    >
+                                        <Plus size={20} />
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        const hasCustomizations = product.wholesale_customizations && product.wholesale_customizations.length > 0;
+                                        if (hasCustomizations && customizationChoice === null) {
+                                            setShowValidationError(true);
+                                            // Scroll to customization section
+                                            document.querySelector('[data-customization-section]')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                            return;
+                                        }
+                                        // Build the product with selected customizations embedded
+                                        const enrichedProduct = {
+                                            ...product,
+                                            wholesale_customizations: customizationChoice === 'with'
+                                                ? product.wholesale_customizations.filter((_: any, i: number) => selectedCustomizations.has(i))
+                                                : [],
+                                        };
+                                        addToCart(enrichedProduct, quantity);
+                                        setIsCartOpen(true);
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-2.5 bg-amber-400 text-amber-900 font-bold h-[56px] rounded-full text-base hover:bg-amber-500 active:scale-95 transition-all duration-200 shadow-sm border border-amber-500 px-4"
+                                >
+                                    <ShoppingCart size={20} />
+                                    <span className="hidden sm:inline">Adicionar ao Carrinho</span>
+                                    <span className="sm:hidden">Adicionar</span>
+                                </button>
+                            </>
                         )}
                     </div>
                 </div>

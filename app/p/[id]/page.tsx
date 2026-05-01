@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { CartProvider, useCart } from '@/app/context/CartContext';
 import CartDrawer from '@/app/components/CartDrawer';
-import { Leaf, ShoppingCart, ChevronLeft, Tag } from 'lucide-react';
+import { Leaf, ShoppingCart, ChevronLeft, Tag, Minus, Plus } from 'lucide-react';
 
 type Product = {
     id: string;
@@ -46,6 +46,7 @@ function ProductPage() {
     const [product, setProduct] = useState<Product | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [quantity, setQuantity] = useState(1);
 
     useEffect(() => {
         if (id) loadProduct();
@@ -190,33 +191,51 @@ function ProductPage() {
             {/* Sticky CTA */}
             <div className="fixed bottom-0 left-0 right-0 z-50">
                 <div className="bg-white/80 backdrop-blur-md border-t border-mint-dark px-4 py-4">
-                    <div className="max-w-2xl mx-auto">
+                    <div className="max-w-2xl mx-auto flex items-center gap-3">
                         {isUnavailable ? (
-                            <button disabled className="w-full flex items-center justify-center gap-2.5 bg-gray-100 text-gray-400 font-bold py-4 rounded-full text-base cursor-not-allowed">
+                            <button disabled className="w-full flex items-center justify-center gap-2.5 bg-gray-100 text-gray-400 font-bold py-4 rounded-full text-base cursor-not-allowed h-[56px]">
                                 Produto Indisponível
                             </button>
                         ) : (
-                            <button
-                                onClick={() => {
-                                    addToCart({
-                                        id: product.id,
-                                        name: product.name,
-                                        price: product.price,
-                                        image: product.image_url || '',
-                                        image_url: product.image_url,
-                                        category: product.category,
-                                        status: product.status as any,
-                                        description: product.description,
-                                        whatsapp: '',
-                                        tags: product.tags,
-                                    });
-                                    setIsCartOpen(true);
-                                }}
-                                className="w-full flex items-center justify-center gap-2.5 bg-lime text-forest font-bold py-4 rounded-full text-base hover:bg-lime-dark active:scale-95 transition-all duration-200 shadow-sm"
-                            >
-                                <ShoppingCart size={20} />
-                                Adicionar ao Carrinho
-                            </button>
+                            <>
+                                <div className="flex items-center justify-between bg-mint border border-mint-dark rounded-full px-2 w-32 h-[56px] flex-shrink-0">
+                                    <button 
+                                        onClick={() => setQuantity(q => Math.max(1, q - 1))} 
+                                        className="p-2 text-forest/60 hover:text-forest transition-colors rounded-full"
+                                    >
+                                        <Minus size={20} />
+                                    </button>
+                                    <span className="font-bold text-forest text-lg w-8 text-center">{quantity}</span>
+                                    <button 
+                                        onClick={() => setQuantity(q => q + 1)} 
+                                        className="p-2 text-forest/60 hover:text-forest transition-colors rounded-full"
+                                    >
+                                        <Plus size={20} />
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        addToCart({
+                                            id: product.id,
+                                            name: product.name,
+                                            price: product.price,
+                                            image: product.image_url || '',
+                                            image_url: product.image_url,
+                                            category: product.category,
+                                            status: product.status as any,
+                                            description: product.description,
+                                            whatsapp: '',
+                                            tags: product.tags,
+                                        }, quantity);
+                                        setIsCartOpen(true);
+                                    }}
+                                    className="flex-1 flex items-center justify-center gap-2.5 bg-lime text-forest font-bold h-[56px] rounded-full text-base hover:bg-lime-dark active:scale-95 transition-all duration-200 shadow-sm px-4"
+                                >
+                                    <ShoppingCart size={20} />
+                                    <span className="hidden sm:inline">Adicionar ao Carrinho</span>
+                                    <span className="sm:hidden">Adicionar</span>
+                                </button>
+                            </>
                         )}
                     </div>
                 </div>

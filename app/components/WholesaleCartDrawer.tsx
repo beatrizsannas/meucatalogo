@@ -171,7 +171,7 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                     }`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-amber-200 bg-white">
+                <div className="flex items-center justify-between p-6 border-b border-amber-200 bg-white shrink-0">
                     <div className="flex items-center gap-3">
                         {view === 'form' ? (
                             <button
@@ -208,7 +208,7 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
 
                 {/* Body Content */}
                 {view === 'success' && lastOrderDetails && (
-                    <div className="flex-1 overflow-y-auto p-6 bg-white flex flex-col items-center">
+                    <div className="flex-1 overflow-y-auto p-6 bg-white flex flex-col items-center min-h-0">
                         <div className="w-16 h-16 bg-amber-200 rounded-full flex items-center justify-center mb-4 mt-2">
                             <Send size={28} className="text-amber-700 ml-1" />
                         </div>
@@ -266,7 +266,7 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                 )}
 
                 {view === 'form' && (
-                    <div className="flex-1 overflow-y-auto bg-white">
+                    <div className="flex-1 overflow-y-auto bg-white min-h-0">
                         <form onSubmit={handleCheckoutSubmit} className="p-6 space-y-4">
                             <p className="text-forest/60 text-sm mb-6">
                                 Precisamos de alguns dados da sua empresa ou seu cadastro para faturar seu pedido de atacado.
@@ -353,7 +353,7 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
 
                 {view === 'cart' && (
                     <>
-                        <div className="flex-1 overflow-y-auto p-4 bg-transparent">
+                        <div className="flex-1 overflow-y-auto p-4 bg-transparent min-h-0">
                             {items.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-amber-900/40 space-y-4">
                                     <Boxes size={48} className="opacity-40" />
@@ -465,7 +465,7 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
 
                         {/* Footer (Total & Checkout) */}
                         {items.length > 0 && (
-                            <div className="p-5 bg-white border-t border-amber-200 shadow-up">
+                            <div className="p-5 bg-white border-t border-amber-200 shadow-up shrink-0">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-forest/60 text-sm font-medium">Subtotal Itens</span>
                                     <span className="text-forest font-bold">{formatPrice(cartTotal - totalCustomizations)}</span>
@@ -488,9 +488,14 @@ export default function WholesaleCartDrawer({ profileId, whatsapp }: Props) {
                                 <div className="flex flex-col gap-2.5">
                                     <button
                                         onClick={handleCheckoutStep1}
-                                        className="w-full flex items-center justify-center gap-2 text-amber-900 bg-amber-400 border border-amber-500 font-extrabold py-3.5 rounded-full text-base hover:bg-amber-500 transition-all shadow-sm active:scale-95"
+                                        disabled={cartCount < 6}
+                                        className={`w-full flex items-center justify-center gap-2 font-extrabold py-3.5 rounded-full text-base transition-all shadow-sm ${
+                                            cartCount >= 6 
+                                                ? 'text-amber-900 bg-amber-400 border border-amber-500 hover:bg-amber-500 active:scale-95' 
+                                                : 'text-amber-900/50 bg-amber-200 border border-amber-300 cursor-not-allowed'
+                                        }`}
                                     >
-                                        Finalizar Pedido
+                                        {cartCount >= 6 ? 'Finalizar Pedido' : `Faltam ${6 - cartCount} peças no total (mín. 6)`}
                                     </button>
                                     <div className="flex items-center justify-between">
                                         <button
