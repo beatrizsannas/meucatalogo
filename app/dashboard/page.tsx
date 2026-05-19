@@ -45,6 +45,8 @@ export default function DashboardPage() {
     const [showNotifications, setShowNotifications] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [lastReadTs, setLastReadTs] = useState('1970-01-01T00:00:00Z');
+    const [dismissedOrders, setDismissedOrders] = useState<string[]>([]);
+    const [clearedUntil, setClearedUntil] = useState<string>('1970-01-01T00:00:00Z');
 
     useEffect(() => {
         loadStats();
@@ -62,7 +64,13 @@ export default function DashboardPage() {
 
         // Load recent orders for notifications
         const lastReadTimestamp = localStorage.getItem(`lastReadOrders_${user.id}`) || '1970-01-01T00:00:00Z';
+        const dismissed = JSON.parse(localStorage.getItem(`dismissedOrders_${user.id}`) || '[]');
+        const cleared = localStorage.getItem(`clearedOrdersUntil_${user.id}`) || '1970-01-01T00:00:00Z';
+        
         setLastReadTs(lastReadTimestamp);
+        setDismissedOrders(dismissed);
+        setClearedUntil(cleared);
+
         const { data: recentOrders } = await supabase
             .from('orders')
             .select('id, customer_name, total, date')
@@ -71,8 +79,9 @@ export default function DashboardPage() {
             .limit(20);
 
         if (recentOrders) {
-            const unread = recentOrders.filter(o => new Date(o.date) > new Date(lastReadTimestamp));
-            setNewOrders(recentOrders.slice(0, 10));
+            const visibleOrders = recentOrders.filter(o => new Date(o.date) > new Date(cleared) && !dismissed.includes(o.id));
+            const unread = visibleOrders.filter(o => new Date(o.date) > new Date(lastReadTimestamp));
+            setNewOrders(visibleOrders.slice(0, 10));
             setUnreadCount(unread.length);
         }
 
@@ -87,6 +96,40 @@ export default function DashboardPage() {
         }
         setUnreadCount(0);
         setLastReadTs(new Date().toISOString());
+    };
+
+    const handleDismissOrder = async (e: React.MouseEvent, id: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const newDismissed = [...dismissedOrders, id];
+        setDismissedOrders(newDismissed);
+        
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            localStorage.setItem(`dismissedOrders_${user.id}`, JSON.stringify(newDismissed));
+        }
+
+        const updatedOrders = newOrders.filter(o => o.id !== id);
+        setNewOrders(updatedOrders);
+        const unread = updatedOrders.filter(o => new Date(o.date) > new Date(lastReadTs));
+        setUnreadCount(unread.length);
+    };
+
+    const handleClearAll = async () => {
+        const ts = new Date().toISOString();
+        setClearedUntil(ts);
+        setNewOrders([]);
+        setUnreadCount(0);
+        
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            localStorage.setItem(`clearedOrdersUntil_${user.id}`, ts);
+            localStorage.setItem(`lastReadOrders_${user.id}`, ts);
+            setLastReadTs(ts);
+        }
     };
 
     const formatPrice = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -147,7 +190,7 @@ export default function DashboardPage() {
                                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${isNew ? 'bg-lime/30' : 'bg-mint'}`}>
                                                             <ShoppingBag size={14} className="text-forest" />
                                                         </div>
-                                                        <div className="flex-1 min-w-0">
+                                                        <div className="flex-1 min-w-0 pr-2">
                                                             <p className="text-sm font-semibold text-forest leading-tight truncate">
                                                                 {order.customer_name || 'Cliente'}
                                                             </p>
@@ -156,21 +199,38 @@ export default function DashboardPage() {
                                                             </p>
                                                             <p className="text-[10px] text-forest/30 mt-0.5">{formatDate(order.date)}</p>
                                                         </div>
-                                                        {isNew && (
-                                                            <div className="w-2 h-2 rounded-full bg-lime flex-shrink-0 mt-2" />
-                                                        )}
+                                                        <div className="flex flex-col items-end gap-2 shrink-0">
+                                                            {isNew && (
+                                                                <div className="w-2 h-2 rounded-full bg-lime flex-shrink-0" />
+                                                            )}
+                                                            <button 
+                                                                onClick={(e) => handleDismissOrder(e, order.id)}
+                                                                className="w-6 h-6 rounded-full flex items-center justify-center text-forest/30 hover:bg-lime hover:text-forest transition-colors"
+                                                                title="Remover notificação"
+                                                            >
+                                                                <CheckCircle2 size={15} />
+                                                            </button>
+                                                        </div>
                                                     </a>
                                                 );
                                             })
                                         )}
                                     </div>
                                     {newOrders.length > 0 && (
-                                        <a
-                                            href="/pedidos"
-                                            className="block text-center py-3 text-xs font-bold text-forest/50 hover:text-forest hover:bg-mint/50 transition-colors border-t border-mint-dark"
-                                        >
-                                            Ver todos os pedidos
-                                        </a>
+                                        <div className="border-t border-mint-dark bg-white">
+                                            <a
+                                                href="/pedidos"
+                                                className="block text-center py-3 text-xs font-bold text-forest hover:bg-mint/50 transition-colors"
+                                            >
+                                                Ver todos os pedidos
+                                            </a>
+                                            <button
+                                                onClick={handleClearAll}
+                                                className="w-full text-center py-3 text-xs font-semibold text-forest/50 hover:text-forest hover:bg-red-50 hover:text-red-600 transition-colors border-t border-mint-dark/50"
+                                            >
+                                                Limpar notificações
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Search, ChevronDown, Leaf, MessageCircle, Boxes, Tag, PackageSearch } from 'lucide-react';
+import { Search, ChevronDown, Leaf, MessageCircle, Boxes, Tag, PackageSearch, Instagram } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { WholesaleCartProvider, useWholesaleCart } from '@/app/context/WholesaleCartContext';
 import WholesaleCartDrawer from '@/app/components/WholesaleCartDrawer';
@@ -31,6 +31,11 @@ type Profile = {
     whatsapp: string;
     slug: string;
     brand_color: string;
+    social_retail_instagram?: string;
+    social_retail_tiktok?: string;
+    social_wholesale_instagram?: string;
+    social_wholesale_tiktok?: string;
+    social_same_for_wholesale?: boolean;
 };
 
 const FALLBACK_LOGO = 'https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=100&h=100&fit=crop';
@@ -150,9 +155,27 @@ export default function WholesaleCatalogPage() {
 
                         {/* Descrição */}
                         {profile.description && (
-                            <p className="text-forest/60 max-w-sm mb-6 text-[13px] leading-relaxed whitespace-pre-line text-center">
+                            <p className={`text-forest/60 max-w-sm text-[13px] leading-relaxed whitespace-pre-line text-center ${((profile.social_same_for_wholesale ? profile.social_retail_instagram : profile.social_wholesale_instagram) || (profile.social_same_for_wholesale ? profile.social_retail_tiktok : profile.social_wholesale_tiktok)) ? 'mb-4' : 'mb-6'}`}>
                                 {profile.description}
                             </p>
+                        )}
+
+                        {/* Redes Sociais */}
+                        {((profile.social_same_for_wholesale ? profile.social_retail_instagram : profile.social_wholesale_instagram) || (profile.social_same_for_wholesale ? profile.social_retail_tiktok : profile.social_wholesale_tiktok)) && (
+                            <div className="flex items-center justify-center gap-3 mb-6">
+                                {(profile.social_same_for_wholesale ? profile.social_retail_instagram : profile.social_wholesale_instagram) && (
+                                    <a href={(profile.social_same_for_wholesale ? profile.social_retail_instagram : profile.social_wholesale_instagram)!.startsWith('http') ? (profile.social_same_for_wholesale ? profile.social_retail_instagram : profile.social_wholesale_instagram) : `https://${(profile.social_same_for_wholesale ? profile.social_retail_instagram : profile.social_wholesale_instagram)}`} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-800 hover:text-amber-900 hover:bg-amber-200 transition-colors shadow-sm">
+                                        <Instagram size={18} />
+                                    </a>
+                                )}
+                                {(profile.social_same_for_wholesale ? profile.social_retail_tiktok : profile.social_wholesale_tiktok) && (
+                                    <a href={(profile.social_same_for_wholesale ? profile.social_retail_tiktok : profile.social_wholesale_tiktok)!.startsWith('http') ? (profile.social_same_for_wholesale ? profile.social_retail_tiktok : profile.social_wholesale_tiktok) : `https://${(profile.social_same_for_wholesale ? profile.social_retail_tiktok : profile.social_wholesale_tiktok)}`} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-800 hover:text-amber-900 hover:bg-amber-200 transition-colors shadow-sm">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+                                        </svg>
+                                    </a>
+                                )}
+                            </div>
                         )}
 
                         {/* Botões de ação */}

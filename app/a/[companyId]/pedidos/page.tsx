@@ -19,6 +19,7 @@ const statusConfig: Record<string, { bg: string; text: string; label: string }> 
     'confirmado': { bg: 'bg-amber-200', text: 'text-forest', label: 'Confirmado' },
     'em-preparacao': { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Em Preparação' },
     'enviado': { bg: 'bg-amber-100', text: 'text-amber-800', label: 'Enviado' },
+    'finalizado': { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Finalizado' },
     'cancelado': { bg: 'bg-red-50', text: 'text-red-600', label: 'Cancelado' },
 };
 

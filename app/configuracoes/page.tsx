@@ -25,6 +25,11 @@ export default function ConfiguracoesPage() {
         whatsapp: '',
         logo_url: '',
         brand_color: '#a8e63d',
+        social_retail_instagram: '',
+        social_retail_tiktok: '',
+        social_wholesale_instagram: '',
+        social_wholesale_tiktok: '',
+        social_same_for_wholesale: true,
         newPassword: '',
         confirmNewPassword: '',
     });
@@ -46,6 +51,11 @@ export default function ConfiguracoesPage() {
                 whatsapp: data.whatsapp || '',
                 logo_url: data.logo_url || '',
                 brand_color: data.brand_color || '#a8e63d',
+                social_retail_instagram: data.social_retail_instagram || '',
+                social_retail_tiktok: data.social_retail_tiktok || '',
+                social_wholesale_instagram: data.social_wholesale_instagram || '',
+                social_wholesale_tiktok: data.social_wholesale_tiktok || '',
+                social_same_for_wholesale: data.social_same_for_wholesale !== false,
             }));
         }
         setLoading(false);
@@ -78,6 +88,11 @@ export default function ConfiguracoesPage() {
             whatsapp: formData.whatsapp.replace(/\D/g, ''),
             logo_url: formData.logo_url,
             brand_color: formData.brand_color,
+            social_retail_instagram: formData.social_retail_instagram,
+            social_retail_tiktok: formData.social_retail_tiktok,
+            social_wholesale_instagram: formData.social_wholesale_instagram,
+            social_wholesale_tiktok: formData.social_wholesale_tiktok,
+            social_same_for_wholesale: formData.social_same_for_wholesale,
         }).eq('id', user.id);
 
         // Update password if provided
@@ -155,7 +170,7 @@ export default function ConfiguracoesPage() {
     return (
         <div className="flex min-h-screen bg-mint relative">
             {/* Success Toast */}
-            <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-forest text-white px-6 py-3 rounded-full font-medium text-sm shadow-xl flex items-center gap-2 transition-all duration-300 ${showSuccess ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
+            <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-[60] bg-forest text-white px-6 py-3 rounded-full font-medium text-sm shadow-xl flex items-center gap-2 transition-all duration-300 ${showSuccess ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                 <CheckCircle2 size={18} className="text-lime" />
                 Configurações salvas com sucesso!
             </div>
@@ -281,6 +296,63 @@ export default function ConfiguracoesPage() {
                                             placeholder="Conte um pouco sobre sua loja..." />
                                     </div>
                                     <p className="text-right text-xs text-forest/40 mt-1">{formData.description.length} caracteres</p>
+                                </div>
+                            </div>
+
+                            {/* Redes Sociais */}
+                            <div className="mt-10 pt-10 border-t border-mint-dark">
+                                <h3 className="text-lg font-bold text-forest mb-2">Redes Sociais</h3>
+                                <p className="text-forest/50 text-sm mb-6">Adicione os links das suas redes sociais para exibi-los no catálogo.</p>
+
+                                <div className="space-y-6">
+                                    {/* Varejo */}
+                                    <div className="bg-mint/30 p-5 rounded-2xl border border-mint-dark">
+                                        <h4 className="font-bold text-forest text-sm mb-4">Catálogo de Varejo</h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-forest mb-1.5">Link do Instagram</label>
+                                                <input type="url" value={formData.social_retail_instagram} onChange={(e) => setFormData({ ...formData, social_retail_instagram: e.target.value })}
+                                                    className="w-full px-4 py-3 rounded-xl bg-white border border-mint-dark text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all"
+                                                    placeholder="https://instagram.com/seu.perfil" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-forest mb-1.5">Link do TikTok</label>
+                                                <input type="url" value={formData.social_retail_tiktok} onChange={(e) => setFormData({ ...formData, social_retail_tiktok: e.target.value })}
+                                                    className="w-full px-4 py-3 rounded-xl bg-white border border-mint-dark text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all"
+                                                    placeholder="https://tiktok.com/@seu.perfil" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Checkbox para Atacado */}
+                                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                                        <div className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${formData.social_same_for_wholesale ? 'bg-lime text-forest' : 'bg-mint-dark text-transparent'}`}>
+                                            <CheckCircle2 size={14} className={formData.social_same_for_wholesale ? 'opacity-100' : 'opacity-0'} />
+                                        </div>
+                                        <span className="text-sm font-semibold text-forest">Repetir informações para atacado</span>
+                                        <input type="checkbox" className="hidden" checked={formData.social_same_for_wholesale} onChange={(e) => setFormData({ ...formData, social_same_for_wholesale: e.target.checked })} />
+                                    </label>
+
+                                    {/* Atacado */}
+                                    {!formData.social_same_for_wholesale && (
+                                        <div className="bg-mint/30 p-5 rounded-2xl border border-mint-dark animate-in fade-in slide-in-from-top-2">
+                                            <h4 className="font-bold text-forest text-sm mb-4">Catálogo de Atacado</h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-forest mb-1.5">Link do Instagram</label>
+                                                    <input type="url" value={formData.social_wholesale_instagram} onChange={(e) => setFormData({ ...formData, social_wholesale_instagram: e.target.value })}
+                                                        className="w-full px-4 py-3 rounded-xl bg-white border border-mint-dark text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all"
+                                                        placeholder="https://instagram.com/seu.perfil.atacado" />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-forest mb-1.5">Link do TikTok</label>
+                                                    <input type="url" value={formData.social_wholesale_tiktok} onChange={(e) => setFormData({ ...formData, social_wholesale_tiktok: e.target.value })}
+                                                        className="w-full px-4 py-3 rounded-xl bg-white border border-mint-dark text-forest placeholder:text-forest/30 text-sm focus:outline-none focus:ring-2 focus:ring-lime transition-all"
+                                                        placeholder="https://tiktok.com/@seu.perfil.atacado" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

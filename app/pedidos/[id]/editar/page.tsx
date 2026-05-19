@@ -8,12 +8,13 @@ import CustomSelect from '@/app/components/CustomSelect';
 import { orders } from '@/app/data/orders';
 import { ChevronLeft, Save, User, Phone, Tag } from 'lucide-react';
 
-const statuses = ['pendente', 'confirmado', 'em-preparacao', 'enviado', 'cancelado'];
+const statuses = ['pendente', 'confirmado', 'em-preparacao', 'enviado', 'finalizado', 'cancelado'];
 const statusLabels: Record<string, string> = {
     'pendente': 'Pendente',
     'confirmado': 'Confirmado',
     'em-preparacao': 'Em Preparação',
     'enviado': 'Enviado',
+    'finalizado': 'Finalizado',
     'cancelado': 'Cancelado'
 };
 

@@ -7,10 +7,10 @@ import { Search, ChevronDown, SlidersHorizontal, Eye } from 'lucide-react';
 import Link from 'next/link';
 import CustomSelect from '@/app/components/CustomSelect';
 
-const statuses = ['Todos', 'Pendente', 'Confirmado', 'Em Preparação', 'Enviado', 'Cancelado'];
+const statuses = ['Todos', 'Pendente', 'Confirmado', 'Em Preparação', 'Enviado', 'Finalizado', 'Cancelado'];
 const statusMap: Record<string, string> = {
     'Pendente': 'pendente', 'Confirmado': 'confirmado',
-    'Em Preparação': 'em-preparacao', 'Enviado': 'enviado', 'Cancelado': 'cancelado'
+    'Em Preparação': 'em-preparacao', 'Enviado': 'enviado', 'Finalizado': 'finalizado', 'Cancelado': 'cancelado'
 };
 const ITEMS_PER_PAGE = 10;
 
@@ -26,6 +26,7 @@ function StatusSelect({ order, onUpdate }: { order: Order; onUpdate: (id: string
         'confirmado': 'bg-lime border-lime-dark text-forest',
         'em-preparacao': 'bg-blue-50 border-blue-200 text-blue-700',
         'enviado': 'bg-purple-50 border-purple-200 text-purple-700',
+        'finalizado': 'bg-emerald-50 border-emerald-200 text-emerald-700',
         'cancelado': 'bg-red-50 border-red-200 text-red-600',
     };
     const options = [
@@ -33,6 +34,7 @@ function StatusSelect({ order, onUpdate }: { order: Order; onUpdate: (id: string
         { value: 'confirmado', label: 'Confirmado' },
         { value: 'em-preparacao', label: 'Em Preparação' },
         { value: 'enviado', label: 'Enviado' },
+        { value: 'finalizado', label: 'Finalizado' },
         { value: 'cancelado', label: 'Cancelado' }
     ];
     return (

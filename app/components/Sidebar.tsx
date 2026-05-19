@@ -11,6 +11,7 @@ import {
     Leaf,
     ReceiptText,
     Users,
+    TrendingUp,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -20,6 +21,7 @@ const navItems = [
     { href: '/pedidos', label: 'Pedidos', icon: BookOpen },
     { href: '/clientes', label: 'Clientes', icon: Users },
     { href: '/pdv', label: 'PDV', icon: ReceiptText },
+    { href: '/relatorios', label: 'Relatórios', icon: TrendingUp },
     { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 

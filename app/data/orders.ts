@@ -12,7 +12,7 @@ export interface Order {
     customerPhone: string;
     items: OrderItem[];
     total: number;
-    status: 'pendente' | 'confirmado' | 'em-preparacao' | 'enviado' | 'cancelado';
+    status: 'pendente' | 'confirmado' | 'em-preparacao' | 'enviado' | 'finalizado' | 'cancelado' | 'entregue';
 }
 
 export const orders: Order[] = [

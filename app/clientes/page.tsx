@@ -7,7 +7,7 @@ import {
     Users, Plus, Search, Phone, ShoppingBag,
     X, ChevronRight, User, Mail, Home, StickyNote,
     Loader2, CheckCircle2, Eye, Calendar, TrendingUp,
-    Pencil, Trash2, AlertTriangle, MapPin,
+    Pencil, Trash2, AlertTriangle, MapPin, Info,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -78,6 +78,7 @@ const statusConfig: Record<string, { bg: string; text: string; label: string }> 
     'confirmado': { bg: 'bg-lime', text: 'text-forest', label: 'Confirmado' },
     'em-preparacao': { bg: 'bg-blue-100', text: 'text-blue-700', label: 'Em Preparação' },
     'enviado': { bg: 'bg-purple-100', text: 'text-purple-700', label: 'Enviado' },
+    'finalizado': { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Finalizado' },
     'cancelado': { bg: 'bg-red-50', text: 'text-red-500', label: 'Cancelado' },
     'entregue': { bg: 'bg-green-100', text: 'text-green-700', label: 'Entregue' },
 };
@@ -960,7 +961,16 @@ export default function ClientesPage() {
                                 <div className="px-6 py-3 border-b border-mint-dark bg-amber-50/60 flex items-center gap-2">
                                     <ShoppingBag size={14} className="text-amber-600" />
                                     <span className="text-xs font-bold text-amber-700/70 uppercase tracking-wider">Clientes do Catálogo</span>
-                                    <span className="text-xs text-amber-600/60 ml-1">— identificados por pedidos</span>
+                                    <span className="text-xs text-amber-600/60 ml-1 flex items-center gap-1.5 relative group cursor-help">
+                                        — identificados por pedidos
+                                        <Info size={14} className="text-amber-600/50 group-hover:text-amber-600 transition-colors" />
+                                        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-white rounded-xl shadow-[0_4px_24px_0_rgba(15,41,38,0.1)] border border-amber-200 p-4 z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                                            <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-t border-l border-amber-200 rotate-45"></div>
+                                            <p className="text-xs text-amber-900/80 leading-relaxed font-normal normal-case tracking-normal relative z-10">
+                                                Estes são os clientes que acessam o seu catálogo e fazem o pedido por lá. O sistema os salva automaticamente pelo número de telefone.
+                                            </p>
+                                        </div>
+                                    </span>
                                     <span className="ml-auto text-xs text-amber-600/60">{filteredCatalog.length}</span>
                                 </div>
                                 <table className="w-full">
