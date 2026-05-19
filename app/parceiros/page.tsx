@@ -7,6 +7,7 @@ import { Store, Instagram, X, ArrowRight } from 'lucide-react';
 
 type Partner = {
     id: string;
+    slug: string;
     store_name: string;
     logo_url: string;
     description: string;
@@ -25,7 +26,7 @@ export default function ParceirosPage() {
             // Fetch profiles that have a store_name
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, store_name, logo_url, description, social_retail_instagram, social_retail_tiktok')
+                .select('id, slug, store_name, logo_url, description, social_retail_instagram, social_retail_tiktok')
                 .not('store_name', 'is', null)
                 .neq('store_name', '')
                 .not('store_name', 'ilike', '%test store%')
@@ -218,7 +219,7 @@ export default function ParceirosPage() {
                             )}
 
                             <Link 
-                                href={`/v/${selectedPartner.id}`}
+                                href={`/v/${selectedPartner.slug || selectedPartner.id}`}
                                 className="flex items-center justify-center gap-2 w-full py-3.5 bg-forest text-lime font-bold rounded-xl hover:bg-forest/90 hover:-translate-y-0.5 transition-all shadow-md shadow-forest/10"
                             >
                                 <Store size={18} />
