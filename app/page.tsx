@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, ShoppingBag, MessageCircle, Zap, ShieldCheck, Star, CheckCircle2, Store, Users, LayoutDashboard, Package, DollarSign, Eye, TrendingUp } from 'lucide-react';
+import Header from './components/Header';
 
 export default function LandingPage() {
     return (
@@ -30,44 +31,7 @@ export default function LandingPage() {
             `}} />
 
             {/* --- HEADER --- */}
-            <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between glass-header border-b border-white/20">
-                <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-forest flex items-center justify-center shadow-sm">
-                            <span className="text-lime font-black text-xl uppercase tracking-tighter">V</span>
-                        </div>
-                        <span className="font-bold text-forest text-lg tracking-tight hidden sm:block">
-                            Minha Vitrine
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href="/"
-                            className="px-4 py-2 text-forest/70 font-semibold text-sm hover:text-forest transition-colors hidden sm:block"
-                        >
-                            Início
-                        </Link>
-                        <Link
-                            href="/parceiros"
-                            className="px-4 py-2 text-forest/70 font-semibold text-sm hover:text-forest transition-colors hidden sm:block"
-                        >
-                            Nossos Parceiros
-                        </Link>
-                        <Link
-                            href="/login"
-                            className="px-4 py-2 text-forest font-semibold text-sm hover:text-forest/70 transition-colors hidden sm:block"
-                        >
-                            Entrar
-                        </Link>
-                        <Link
-                            href="/cadastro"
-                            className="px-5 py-2.5 bg-forest text-white rounded-full font-semibold text-sm shadow-md shadow-forest/20 hover:bg-forest/90 hover:shadow-lg hover:-translate-y-0.5 transition-all"
-                        >
-                            Criar Vitrine Grátis
-                        </Link>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             {/* --- HERO SECTION --- */}
             <section className="relative z-10 px-4 pt-40 pb-20 sm:pt-48 sm:pb-32 w-full flex flex-col items-center justify-center text-center">

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { Store, Instagram, X, ArrowRight } from 'lucide-react';
+import Header from '@/app/components/Header';
 
 type Partner = {
     id: string;
@@ -56,32 +57,7 @@ export default function ParceirosPage() {
     return (
         <div className="min-h-screen bg-mint font-jakarta selection:bg-lime/50 selection:text-forest text-forest">
             {/* --- HEADER --- */}
-            <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between bg-white/70 backdrop-blur-md border-b border-white/20">
-                <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 rounded-xl bg-forest flex items-center justify-center shadow-sm group-hover:bg-forest/90 transition-colors">
-                            <span className="text-lime font-black text-xl uppercase tracking-tighter">V</span>
-                        </div>
-                        <span className="font-bold text-forest text-lg tracking-tight hidden sm:block">
-                            Minha Vitrine
-                        </span>
-                    </Link>
-                    <div className="flex items-center gap-4">
-                        <Link href="/" className="px-4 py-2 text-forest/70 font-semibold text-sm hover:text-forest transition-colors hidden sm:block">
-                            Início
-                        </Link>
-                        <Link href="/parceiros" className="px-4 py-2 text-forest/70 font-semibold text-sm hover:text-forest transition-colors hidden sm:block">
-                            Nossos Parceiros
-                        </Link>
-                        <Link href="/login" className="px-4 py-2 text-forest font-semibold text-sm hover:text-forest/70 transition-colors hidden sm:block">
-                            Entrar
-                        </Link>
-                        <Link href="/cadastro" className="px-5 py-2.5 bg-forest text-white rounded-full font-semibold text-sm shadow-md shadow-forest/20 hover:bg-forest/90 hover:-translate-y-0.5 transition-all">
-                            Criar Vitrine Grátis
-                        </Link>
-                    </div>
-                </div>
-            </header>
+            <Header />
 
             {/* --- HERO SECTION --- */}
             <section className="px-4 pt-32 pb-16 w-full flex flex-col items-center justify-center text-center">
