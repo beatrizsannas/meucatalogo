@@ -89,22 +89,22 @@ export default function ParceirosPage() {
                         </Link>
                     </div>
                 ) : (
-                    <div className="flex flex-wrap justify-center gap-5">
+                    <div className="flex flex-wrap justify-center gap-3 sm:gap-5">
                         {partners.map(partner => (
                             <button
                                 key={partner.id}
                                 onClick={() => setSelectedPartner(partner)}
-                                className="bg-white p-5 rounded-3xl shadow-sm border border-mint-dark/50 hover:shadow-md hover:border-lime/50 transition-all text-left group flex flex-col items-center justify-center min-h-[200px] w-full sm:w-[240px]"
+                                className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm border border-mint-dark/50 hover:shadow-md hover:border-lime/50 transition-all group flex flex-col items-center justify-center min-h-[160px] sm:min-h-[200px] w-[calc(50%-6px)] sm:w-[240px]"
                             >
-                                <div className="w-16 h-16 rounded-full border border-mint-dark overflow-hidden mb-3 bg-white flex items-center justify-center ring-4 ring-transparent group-hover:ring-lime/20 transition-all">
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border border-mint-dark overflow-hidden mb-2 sm:mb-3 bg-white flex items-center justify-center ring-4 ring-transparent group-hover:ring-lime/20 transition-all shrink-0">
                                     {partner.logo_url ? (
                                         <img src={partner.logo_url} alt={partner.store_name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <span className="text-forest/30 font-bold text-3xl uppercase">{partner.store_name[0]}</span>
+                                        <span className="text-forest/30 font-bold text-xl sm:text-3xl uppercase">{partner.store_name[0]}</span>
                                     )}
                                 </div>
-                                <h3 className="text-lg font-bold text-forest text-center line-clamp-2">{partner.store_name}</h3>
-                                <p className="text-xs text-forest/50 mt-2 font-medium">Ver detalhes &rarr;</p>
+                                <h3 className="text-sm sm:text-lg font-bold text-forest text-center line-clamp-2">{partner.store_name}</h3>
+                                <p className="text-[10px] sm:text-xs text-forest/50 mt-1 sm:mt-2 font-medium">Ver detalhes &rarr;</p>
                             </button>
                         ))}
                     </div>
